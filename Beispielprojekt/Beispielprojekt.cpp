@@ -19,7 +19,7 @@ public:
 	GameWindow()
 		: Window(800, 600)
 	{
-		set_caption("Gosu Tutorial Game mit Git");
+		set_caption("Gosu Tutorial mit Git");
 	}
 
 	// wird bis zu 60x pro Sekunde aufgerufen.
@@ -27,6 +27,11 @@ public:
 	// dann werden `draw` Aufrufe ausgelassen und die Framerate sinkt
 	void draw() override
 	{
+		graphics().draw_line(
+			10, 20, Gosu::Color::RED,
+			200, 100, Gosu::Color::GREEN,
+			0.0
+		);
 	}
 
 	// Wird 60x pro Sekunde aufgerufen
