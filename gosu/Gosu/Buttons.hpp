@@ -1,15 +1,12 @@
 #pragma once
 
-#include <Gosu/Platform.hpp>
-
 namespace Gosu
 {
-    //! List of button ids that can be used with Gosu::Input.
-    //! This enumeration contains ids for keyboard keys (KB_*),
-    //! mouse buttons and mouse wheel (MS_*) and gamepad buttons (GP_*).
-    enum ButtonName
+    /// List of button IDs that can be used with Gosu::Input.
+    /// This enumeration contains IDs for keyboard keys (KB_*),
+    /// mouse buttons and mouse wheel (MS_*), as well as gamepad buttons (GP_*).
+    enum Button
     {
-        KB_RANGE_BEGIN,
         KB_ESCAPE          = 41,
         KB_F1              = 58,
         KB_F2              = 59,
@@ -51,6 +48,9 @@ namespace Gosu
         KB_DOWN            = 81,
         KB_HOME            = 74,
         KB_END             = 77,
+        KB_PRINT_SCREEN    = 70,
+        KB_SCROLL_LOCK     = 71,
+        KB_PAUSE           = 72,
         KB_INSERT          = 73,
         KB_DELETE          = 76,
         KB_PAGE_UP         = 75,
@@ -66,7 +66,8 @@ namespace Gosu
         KB_APOSTROPHE      = 52,
         KB_COMMA           = 54,
         KB_PERIOD          = 55,
-        KB_SLASH           = 49,
+        KB_SLASH           = 56,
+        KB_CAPS_LOCK       = 57,
         KB_A               = 4,
         KB_B               = 5,
         KB_C               = 6,
@@ -93,7 +94,8 @@ namespace Gosu
         KB_X               = 27,
         KB_Y               = 28,
         KB_Z               = 29,
-        KB_ISO             = 100, // ` on US/UK macOS, < ON EU macOS, \ in US/UK Windows
+        /// ` on US/UK macOS, < on EU macOS, \ on US/UK Windows
+        KB_ISO             = 100,
         KB_NUMPAD_0        = 98,
         KB_NUMPAD_1        = 89,
         KB_NUMPAD_2        = 90,
@@ -104,6 +106,7 @@ namespace Gosu
         KB_NUMPAD_7        = 95,
         KB_NUMPAD_8        = 96,
         KB_NUMPAD_9        = 97,
+        KB_NUMPAD_DELETE   = 99,
         KB_NUMPAD_PLUS     = 87,
         KB_NUMPAD_MINUS    = 86,
         KB_NUMPAD_MULTIPLY = 85,
@@ -124,13 +127,12 @@ namespace Gosu
         MS_OTHER_5,
         MS_OTHER_6,
         MS_OTHER_7,
-        MS_RANGE_END = 0x110,
-        
+
         GP_RANGE_BEGIN,
-        GP_LEFT = GP_RANGE_BEGIN,
-        GP_RIGHT,
-        GP_UP,
-        GP_DOWN,
+        GP_DPAD_LEFT = GP_RANGE_BEGIN,
+        GP_DPAD_RIGHT,
+        GP_DPAD_UP,
+        GP_DPAD_DOWN,
         GP_BUTTON_0,
         GP_BUTTON_1,
         GP_BUTTON_2,
@@ -148,10 +150,10 @@ namespace Gosu
         GP_BUTTON_14,
         GP_BUTTON_15,
 
-        GP_0_LEFT,
-        GP_0_RIGHT,
-        GP_0_UP,
-        GP_0_DOWN,
+        GP_0_DPAD_LEFT,
+        GP_0_DPAD_RIGHT,
+        GP_0_DPAD_UP,
+        GP_0_DPAD_DOWN,
         GP_0_BUTTON_0,
         GP_0_BUTTON_1,
         GP_0_BUTTON_2,
@@ -168,11 +170,11 @@ namespace Gosu
         GP_0_BUTTON_13,
         GP_0_BUTTON_14,
         GP_0_BUTTON_15,
-        
-        GP_1_LEFT,
-        GP_1_RIGHT,
-        GP_1_UP,
-        GP_1_DOWN,
+
+        GP_1_DPAD_LEFT,
+        GP_1_DPAD_RIGHT,
+        GP_1_DPAD_UP,
+        GP_1_DPAD_DOWN,
         GP_1_BUTTON_0,
         GP_1_BUTTON_1,
         GP_1_BUTTON_2,
@@ -189,11 +191,11 @@ namespace Gosu
         GP_1_BUTTON_13,
         GP_1_BUTTON_14,
         GP_1_BUTTON_15,
-        
-        GP_2_LEFT,
-        GP_2_RIGHT,
-        GP_2_UP,
-        GP_2_DOWN,
+
+        GP_2_DPAD_LEFT,
+        GP_2_DPAD_RIGHT,
+        GP_2_DPAD_UP,
+        GP_2_DPAD_DOWN,
         GP_2_BUTTON_0,
         GP_2_BUTTON_1,
         GP_2_BUTTON_2,
@@ -210,11 +212,11 @@ namespace Gosu
         GP_2_BUTTON_13,
         GP_2_BUTTON_14,
         GP_2_BUTTON_15,
-        
-        GP_3_LEFT,
-        GP_3_RIGHT,
-        GP_3_UP,
-        GP_3_DOWN,
+
+        GP_3_DPAD_LEFT,
+        GP_3_DPAD_RIGHT,
+        GP_3_DPAD_UP,
+        GP_3_DPAD_DOWN,
         GP_3_BUTTON_0,
         GP_3_BUTTON_1,
         GP_3_BUTTON_2,
@@ -231,16 +233,75 @@ namespace Gosu
         GP_3_BUTTON_13,
         GP_3_BUTTON_14,
         GP_3_BUTTON_15,
-        
-        GP_RANGE_END       = GP_3_BUTTON_15,
-        
-        NUM_BUTTONS        = GP_RANGE_END + 1,
-        NUM_GAMEPADS       = 4,
-        NO_BUTTON          = 0xffffffff,
-        
-        KB_NUM             = KB_RANGE_END - KB_RANGE_BEGIN + 1,
-        MS_NUM             = MS_RANGE_END - MS_RANGE_BEGIN + 1,
-        GP_NUM             = GP_RANGE_END - GP_RANGE_BEGIN + 1,
-        GP_NUM_PER_GAMEPAD = GP_NUM / (NUM_GAMEPADS + 1)
+
+        GP_LEFT,
+        GP_RIGHT,
+        GP_UP,
+        GP_DOWN,
+
+        GP_0_LEFT,
+        GP_0_RIGHT,
+        GP_0_UP,
+        GP_0_DOWN,
+
+        GP_1_LEFT,
+        GP_1_RIGHT,
+        GP_1_UP,
+        GP_1_DOWN,
+
+        GP_2_LEFT,
+        GP_2_RIGHT,
+        GP_2_UP,
+        GP_2_DOWN,
+
+        GP_3_LEFT,
+        GP_3_RIGHT,
+        GP_3_UP,
+        GP_3_DOWN,
+        GP_RANGE_END = GP_3_DOWN,
+
+        NUM_GAMEPADS = 4,
+        NO_BUTTON = 0xffffffff,
+    };
+
+    /// List of axis IDs that can be used with Gosu::Input.
+    enum Axis
+    {
+        GP_LEFT_STICK_X_AXIS,
+        GP_LEFT_STICK_Y_AXIS,
+        GP_RIGHT_STICK_X_AXIS,
+        GP_RIGHT_STICK_Y_AXIS,
+        GP_LEFT_TRIGGER_AXIS,
+        GP_RIGHT_TRIGGER_AXIS,
+
+        GP_0_LEFT_STICK_X_AXIS,
+        GP_0_LEFT_STICK_Y_AXIS,
+        GP_0_RIGHT_STICK_X_AXIS,
+        GP_0_RIGHT_STICK_Y_AXIS,
+        GP_0_LEFT_TRIGGER_AXIS,
+        GP_0_RIGHT_TRIGGER_AXIS,
+
+        GP_1_LEFT_STICK_X_AXIS,
+        GP_1_LEFT_STICK_Y_AXIS,
+        GP_1_RIGHT_STICK_X_AXIS,
+        GP_1_RIGHT_STICK_Y_AXIS,
+        GP_1_LEFT_TRIGGER_AXIS,
+        GP_1_RIGHT_TRIGGER_AXIS,
+
+        GP_2_LEFT_STICK_X_AXIS,
+        GP_2_LEFT_STICK_Y_AXIS,
+        GP_2_RIGHT_STICK_X_AXIS,
+        GP_2_RIGHT_STICK_Y_AXIS,
+        GP_2_LEFT_TRIGGER_AXIS,
+        GP_2_RIGHT_TRIGGER_AXIS,
+
+        GP_3_LEFT_STICK_X_AXIS,
+        GP_3_LEFT_STICK_Y_AXIS,
+        GP_3_RIGHT_STICK_X_AXIS,
+        GP_3_RIGHT_STICK_Y_AXIS,
+        GP_3_LEFT_TRIGGER_AXIS,
+        GP_3_RIGHT_TRIGGER_AXIS,
+
+        NUM_AXES
     };
 }

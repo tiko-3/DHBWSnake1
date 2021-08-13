@@ -24,9 +24,8 @@ namespace Gosu
     class Graphics
     {
         struct Impl;
-        // Non-movable (const) to avoid dangling internal references.
-        const std::unique_ptr<Impl> pimpl;
-        
+        std::unique_ptr<Impl> pimpl;
+
     public:
         Graphics(unsigned physical_width, unsigned physical_height);
         ~Graphics();
@@ -60,11 +59,14 @@ namespace Gosu
         static void clip_to(double x, double y, double width, double height,
                             const std::function<void ()>& f);
         
-        //! Records a macro and returns it as an ImageData instance.
-        //! Usually, the return value is passed to Image::Image().
-        //! Cannot be nested.
-        static std::unique_ptr<Gosu::ImageData> record(int width, int height,
-                                                       const std::function<void ()>& f);
+        //! Renders everything drawn in f onto a new Image of size (width, height).
+        //! \param image_flags Pass Gosu::IF_RETRO if you do not want the resulting image to use
+        //! interpolation when it is scaled or rotated.
+        static Gosu::Image render(int width, int height, const std::function<void ()>& f,
+                                  unsigned image_flags = 0);
+        
+        //! Records a macro and returns it as an Image.
+        static Gosu::Image record(int width, int height, const std::function<void ()>& f);
         
         //! Pushes one transformation onto the transformation stack.
         static void transform(const Transform& transform,
@@ -76,21 +78,23 @@ namespace Gosu
         //! image to simulate lines, or contribute a better draw_line to Gosu.
         static void draw_line(double x1, double y1, Color c1,
                               double x2, double y2, Color c2,
-                              ZPos z, AlphaMode mode = AM_DEFAULT);
+                              ZPos z, BlendMode mode = BM_DEFAULT);
 
         static void draw_triangle(double x1, double y1, Color c1,
                                   double x2, double y2, Color c2,
                                   double x3, double y3, Color c3,
-                                  ZPos z, AlphaMode mode = AM_DEFAULT);
+                                  ZPos z,
+                                  BlendMode mode = BM_DEFAULT);
 
         static void draw_quad(double x1, double y1, Color c1,
                               double x2, double y2, Color c2,
                               double x3, double y3, Color c3,
                               double x4, double y4, Color c4,
-                              ZPos z, AlphaMode mode = AM_DEFAULT);
+                              ZPos z, BlendMode mode = BM_DEFAULT);
         
         static void draw_rect(double x, double y, double width, double height,
-                              Color c, ZPos z, AlphaMode mode = AM_DEFAULT);
+                              Color c, ZPos z,
+                              BlendMode mode = BM_DEFAULT);
 
         //! For internal use only.
         void set_physical_resolution(unsigned physical_width, unsigned physical_height);
@@ -100,7 +104,7 @@ namespace Gosu
 
         //! Turns a portion of a bitmap into something that can be drawn on a Graphics object.
         static std::unique_ptr<ImageData> create_image(const Bitmap& src,
-                                                       unsigned src_x, unsigned src_y,
+                                                       unsigned src_x,     unsigned src_y,
                                                        unsigned src_width, unsigned src_height,
                                                        unsigned image_flags);
     };
