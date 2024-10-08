@@ -81,6 +81,7 @@ public:
     Kaestchen& gibKaestchen(int i, int j);
     int gibApfelPosX();
     int gibApfelPosY();
+    void apfelEntfernen();
     void apfelPlatzieren();
     void apfelGegessen(int posX, int posY);
     Schlange* gibSchlange() { return schlange; }
@@ -97,7 +98,8 @@ void Schlange::bewegen() {
     int neuerKopfX = get<1>(segmente.front()) + richtungX;
     int neuerKopfY = get<2>(segmente.front()) + richtungY;
 
-    if (isstApfel(steuerung->gibApfelPosX(),steuerung->gibApfelPosY())) {
+    if (isstApfel(steuerung->gibApfelPosX(), steuerung->gibApfelPosY())) {
+        steuerung->apfelGegessen(neuerKopfX,neuerKopfY);
     }
     else {
         segmente.pop_back();
@@ -134,24 +136,42 @@ Apfel::Apfel(Steuerung* steuerung) : steuerung(steuerung) {
     srand(time(nullptr));
 }
 
-std::array<int, 2> Apfel::randomApfelPos() {
+array<int, 2> Apfel::randomApfelPos() {
     int max = steuerung->gibGroesseFeld();
     bool belegt = true;
-    int randX = 0;
-    int randY = 4; // Apfel startet auf der gleichen Y-Koordinate wie die Schlange
+    int randX = 4;// Apfel startet auf der gleichen x-Koordinate wie die Schlange
+    int randY = 0; 
     std::array<int, 2> rueckgabe = { 0, 0 };
     while (belegt) {
-        randX = rand() % max;
-        Kaestchen& k = steuerung->gibKaestchen(randX, randY);
-        if (k.gibFarbe() == Gosu::Color::WHITE) {
-            belegt = false;
-            posX = randX;
-            posY = randY;
-            rueckgabe = { randX, randY };
-            menge++;
+        randX = rand() % max;//neue random position
+        randY = rand() % max;
+
+        for (int i = 0; i < max; ++i) {
+            for (int j = 0; j < max; ++j) {
+                Kaestchen& k = steuerung->gibKaestchen(randX, randY);   //kästchen bei random position
+                int x = k.gibPosX();
+                int y = k.gibPosY();
+
+                const vector<tuple<int, int, int>>& segmente = steuerung->gibSchlange()->gibSegmente();
+                for (const auto& segment : segmente) {
+                    if (get<1>(segment) != randX && get<2>(segment) != randY) {
+                        belegt = false;
+                        posX = randX;
+                        posY = randY;
+                        rueckgabe = { randX, randY };
+                        menge++;
+                        break;
+                    }
+                }
+            }
         }
     }
     return rueckgabe;
+}
+
+void Steuerung::apfelEntfernen() {
+    kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Gosu::Color::WHITE);
+   
 }
 
 Steuerung::Steuerung() {
@@ -190,7 +210,8 @@ void Steuerung::apfelPlatzieren() {
 void Steuerung::apfelGegessen(int posX, int posY) {
     if (kaestchen[apfel->gibPosX()][apfel->gibPosY()].gibFarbe() == Gosu::Color::RED) {
         apfel->apfelMengedec();
-        kaestchen[posX][posY].setzeFarbe(Gosu::Color::WHITE);
+        kaestchen[posX][posY].setzeFarbe(Gosu::Color::WHITE);//apfel weiß setzten funktioniert nicht
+        apfelEntfernen();
         apfelPlatzieren();
     }
 }
@@ -255,10 +276,10 @@ public:
     void button_down(Gosu::Button btn) override {
         switch (btn) {
         case Gosu::KB_W:  // nach oben
-            steuerung->gibSchlange()->setzeRichtung(-1, 0);     
+            steuerung->gibSchlange()->setzeRichtung(-1, 0);
             break;
         case Gosu::KB_S:  // nach unten
-            steuerung->gibSchlange()->setzeRichtung(1, 0);      
+            steuerung->gibSchlange()->setzeRichtung(1, 0);
             break;
         case Gosu::KB_A:  // nach links
             steuerung->gibSchlange()->setzeRichtung(0, -1);
