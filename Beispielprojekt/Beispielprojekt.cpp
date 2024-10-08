@@ -7,6 +7,7 @@
 #include <array>
 #include <vector>
 #include <tuple>
+#include <string>
 
 using namespace std;
 
@@ -72,6 +73,7 @@ private:
     const int rasterHoehe = 10;
     const int kaestchenGroesse = 50;
     double aktualisierungsZeit = 0.5;
+    int spielstand;     //0=start, 1=spielen, 2=verloren
 
     Kaestchen kaestchen[10][10];
     Apfel* apfel;
@@ -90,6 +92,7 @@ public:
     void kollisionMitWand(int kopfX, int kopfY);
     void kollisionMitSichSelbst(int kopfX, int kopfY);
     void verloren();
+    int gibSpielstand() { return spielstand; }
     double gibaktualisierungsZeit() {return aktualisierungsZeit; }
     void setzteAktualisierungsZeit(int aktualisierungsZeit) {this->aktualisierungsZeit = aktualisierungsZeit;}
     Schlange* gibSchlange() { return schlange; }
@@ -232,7 +235,8 @@ Steuerung::~Steuerung() {
 
 void Steuerung::verloren() {
     setzteAktualisierungsZeit(10000); //10 minuten 
-    cout << "verloren";
+    spielstand = 2;
+
 }
 
 Kaestchen& Steuerung::gibKaestchen(int i, int j) {
@@ -261,9 +265,9 @@ class Oberflaeche : public Gosu::Window {
 private:
     Steuerung* steuerung;
     double last_move_time;
-
+    Gosu::Font font; // Zum Darstellen von Text
 public:
-    Oberflaeche() : Gosu::Window(800, 600), last_move_time(0) {
+    Oberflaeche() : Gosu::Window(800, 600), font(30), last_move_time(0) {
         set_caption("Snake");
         steuerung = new Steuerung();
     }
@@ -312,6 +316,43 @@ public:
                 Gosu::Graphics::draw_line(x + 50, y, Gosu::Color::BLACK, x + 50, y + 50, Gosu::Color::BLACK, 0);
             }
         }
+
+        if (steuerung->gibSpielstand()==2) {        //verloren
+            // Berechnung der Textgröße
+            std::string nachricht="Verloren";
+            double textBreite = font.text_width(nachricht);
+            double textHoehe = font.height();
+
+            // Positionierung des Textes in der Mitte des Bildschirms
+            double x = 400 - textBreite / 2;
+            double y = 300 - textHoehe / 2;
+
+            // Zeichne einen Kasten als Hintergrund für den Text
+            Gosu::Color kastenFarbe = Gosu::Color::BLACK;
+            Gosu::Color randFarbe = Gosu::Color::WHITE;
+
+            // Hintergrundrechteck zeichnen
+            Gosu::Graphics::draw_quad(
+                x - 10, y - 10, kastenFarbe,          // Oben links
+                x + textBreite + 10, y - 10, kastenFarbe,  // Oben rechts
+                x + textBreite + 10, y + textHoehe + 10, kastenFarbe,  // Unten rechts
+                x - 10, y + textHoehe + 10, kastenFarbe,  // Unten links
+                0  // Z-Ebene des Hintergrunds (unter dem Text)
+            );
+
+            // Zeichne einen weißen Rand um den Kasten (optional)
+            Gosu::Graphics::draw_quad(
+                x - 12, y - 12, randFarbe,          // Oben links
+                x + textBreite + 12, y - 12, randFarbe,  // Oben rechts
+                x + textBreite + 12, y + textHoehe + 12, randFarbe,  // Unten rechts
+                x - 12, y + textHoehe + 12, randFarbe,  // Unten links
+                1  // Z-Ebene des Randes (über dem Hintergrund, aber unter dem Text)
+            );
+
+            // Zeichne den Text über den Kasten
+            font.draw_text(nachricht, x, y, 2, 1.0, 1.0, Gosu::Color::RED);
+        }
+        
     }
 
     void button_down(Gosu::Button btn) override {
