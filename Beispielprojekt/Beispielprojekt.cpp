@@ -103,9 +103,6 @@ void Schlange::bewegen() {
     int neuerKopfX = get<1>(segmente.front()) + richtungX;
     int neuerKopfY = get<2>(segmente.front()) + richtungY;
 
-    cout << neuerKopfX;
-    cout << neuerKopfY;
-
     if (isstApfel(steuerung->gibApfelPosX(), steuerung->gibApfelPosY())) {  //ob der Apfel gegessen wurde
         steuerung->apfelGegessen(neuerKopfX,neuerKopfY);
     }else {
@@ -119,7 +116,7 @@ void Schlange::bewegen() {
     }
 }
 
-void Schlange::setzeRichtung(int x, int y) {
+void Schlange::setzeRichtung(int x, int y) {        //x,y neue richtung
     // Verhindert das Umdrehen auf sich selbst
     if ((richtungX != -x || richtungX == 0) && (richtungY != -y || richtungY == 0)) {
         richtungX = x;
@@ -149,26 +146,22 @@ array<int, 2> Apfel::randomApfelPos() {
     int randX = 4;// Apfel startet auf der gleichen x-Koordinate wie die Schlange
     int randY = 0; 
     std::array<int, 2> rueckgabe = { 0, 0 };
-    while (belegt) {
+    while (belegt==true) {
         randX = rand() % max;//neue random position
         randY = rand() % max;
-
-        for (int i = 0; i < max; ++i) {
-            for (int j = 0; j < max; ++j) {
-                Kaestchen& k = steuerung->gibKaestchen(randX, randY);   //kästchen bei random position holen
-                const vector<tuple<int, int, int>>& segmente = steuerung->gibSchlange()->gibSegmente();
-                for (const auto& segment : segmente) {
-                    if (get<1>(segment) != randX && get<2>(segment) != randY) { //schauen ob random pos unterschiedlich mit schlange ist
-                        belegt = false;
-                        posX = randX;
-                        posY = randY;
-                        rueckgabe = { randX, randY };
-                        menge++;
-                        break;
-                    }
-                }
-            }
-        }
+        const vector<tuple<int, int, int>>& segmente = steuerung->gibSchlange()->gibSegmente();
+          for (const auto& segment : segmente) {
+              if (get<1>(segment) != randX && get<2>(segment) != randY) { //schauen ob random pos unterschiedlich mit schlange ist
+                belegt = false;
+                posX = randX;
+                posY = randY;
+                rueckgabe = { randX, randY };
+                menge++;  
+              }else {
+                 belegt = true;
+                 break;
+              }
+          }
     }
     return rueckgabe;
 }
