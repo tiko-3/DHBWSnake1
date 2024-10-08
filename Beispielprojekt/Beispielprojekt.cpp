@@ -69,11 +69,12 @@ public:
 
 class Steuerung {
 private:
-    const int rasterBreite = 8;
-    const int rasterHoehe = 8;
+    const int rasterBreite = 10;
+    const int rasterHoehe = 10;
     const int kaestchenGroesse = 50;
+    double aktualisierungsZeit = 0.5;
 
-    Kaestchen kaestchen[8][8];
+    Kaestchen kaestchen[10][10];
     Apfel* apfel;
     Schlange* schlange;
 
@@ -89,6 +90,8 @@ public:
     void apfelGegessen(int posX, int posY);
     void kollisionMitWand(int kopfX, int kopfY);
     void verloren();
+    double gibaktualisierungsZeit() {return aktualisierungsZeit; }
+    void setzteAktualisierungsZeit(int aktualisierungsZeit) {this->aktualisierungsZeit = aktualisierungsZeit;}
     Schlange* gibSchlange() { return schlange; }
 };
 
@@ -141,15 +144,15 @@ Apfel::Apfel(Steuerung* steuerung) : steuerung(steuerung) {
 }
 
 array<int, 2> Apfel::randomApfelPos() {
-    int max = steuerung->gibGroesseFeld();
+    int max = steuerung->gibGroesseFeld()-2;//-2 weil bei -1 sind wir auf dem letzten max feld, weil wir bei 0 anfangen mit zählen
     bool belegt = true;
     int randX = 4;  // Apfel startet auf der gleichen x-Koordinate wie die Schlange
     int randY = 0;
     std::array<int, 2> rueckgabe = { 0, 0 };
 
     while (belegt) {
-        randX = rand() % max;  // neue zufällige Position
-        randY = rand() % max;
+        randX = (rand() % max) +1;  // neue zufällige Position
+        randY = (rand() % max) +1 ;
         belegt = false;  // initialisiere als nicht belegt
 
         const vector<tuple<int, int, int>>& segmente = steuerung->gibSchlange()->gibSegmente();
@@ -180,40 +183,18 @@ void Steuerung::apfelEntfernen() {
 }
 void Steuerung::kollisionMitWand(int kopfX, int kopfY) {
 
-    int richtungX = 1; //-1 nach oben, 1 nach unten
-    int richtungY = 0;  // 1 nach rechts, -1 nach links
-
-        if (kopfX==0&&schlange->gibRichtungX()==1) { //unten Raus
+    if (kopfX==0) { //raus oben
         verloren();
     }
-    if (kopfY ==0 & schlange->gibRichtungY() == -1) {  //links raus
+    if (kopfY==0) {  //raus links
         verloren();
     }
-    if (kopfX > 0) { //unten Raus
+    if (kopfX ==  rasterBreite-1) { //raus unten
         verloren();
     }
-    if (kopfY > 0) {
+    if (kopfY == rasterHoehe-1) {   //raus rechts
         verloren();
     }
-
-   /* for (int i = 0; i < max; ++i) {
-            Kaestchen& k = steuerung->gibKaestchen(i, 0); //unterer Rand
-
-    }
-
-    for (int i = 0; i < max; ++i) {
-        Kaestchen& k = steuerung->gibKaestchen(0, i); //linker Rand
-
-    }
-    for (int i = 0; i < max; ++i) {
-        Kaestchen& k = steuerung->gibKaestchen(i, max); //oberer Rand
-
-    }
-    for (int i = 0; i < max; ++i) {
-        Kaestchen& k = steuerung->gibKaestchen(max, i); //rechter Rand
-
-    }*/
-
 }
 
 Steuerung::Steuerung() {
@@ -221,6 +202,11 @@ Steuerung::Steuerung() {
         for (int j = 0; j < rasterBreite; ++j) {
             kaestchen[i][j].setzePosition(j * kaestchenGroesse, i * kaestchenGroesse);
             kaestchen[i][j].setzeFarbe(Gosu::Color::WHITE);
+            if (i==0|| j == 0|| i == rasterHoehe - 1|| j == rasterBreite - 1) {  
+                kaestchen[i][j].setzeFarbe(Gosu::Color::GRAY);
+
+            }
+
         }
     }
     apfel = new Apfel(this);
@@ -235,6 +221,7 @@ Steuerung::~Steuerung() {
 }
 
 void Steuerung::verloren() {
+    setzteAktualisierungsZeit(10000); //10 minuten 
     cout << "verloren";
 }
 
@@ -277,7 +264,7 @@ public:
 
     void update() override {
         double current_time = Gosu::milliseconds() / 1000.0;
-        if (current_time - last_move_time >= 0.5) {  // Bewegung alle 0,5 Sekunden
+        if (current_time - last_move_time >= steuerung->gibaktualisierungsZeit()) {  // Bewegung alle 0,5 Sekunden
             steuerung->gibSchlange()->bewegen();
             last_move_time = current_time;
         }
