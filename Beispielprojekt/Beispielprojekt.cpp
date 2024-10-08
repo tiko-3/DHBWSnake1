@@ -23,7 +23,6 @@ private:
 public:
     Schlange(Steuerung* steuerung);
     Gosu::Color gibFarbe() const { return farbe; }
-
     void bewegen();
     void setzeRichtung(int x, int y);
     bool isstApfel(int apfelX, int apfelY);
@@ -89,6 +88,7 @@ public:
     void apfelPlatzieren();
     void apfelGegessen(int posX, int posY);
     void kollisionMitWand(int kopfX, int kopfY);
+    void kollisionMitSichSelbst(int kopfX, int kopfY);
     void verloren();
     double gibaktualisierungsZeit() {return aktualisierungsZeit; }
     void setzteAktualisierungsZeit(int aktualisierungsZeit) {this->aktualisierungsZeit = aktualisierungsZeit;}
@@ -112,6 +112,7 @@ void Schlange::bewegen() {
         segmente.pop_back();
     }
     steuerung->kollisionMitWand(neuerKopfX,neuerKopfY);
+    steuerung->kollisionMitSichSelbst(neuerKopfX, neuerKopfY);
     segmente.insert(segmente.begin(), make_tuple(0, neuerKopfX, neuerKopfY));
 
     for (int i = 0; i < segmente.size(); i++) {
@@ -176,13 +177,12 @@ array<int, 2> Apfel::randomApfelPos() {
     return rueckgabe;
 }
 
-
 void Steuerung::apfelEntfernen() {
     kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Gosu::Color::WHITE);
    
 }
-void Steuerung::kollisionMitWand(int kopfX, int kopfY) {
 
+void Steuerung::kollisionMitWand(int kopfX, int kopfY) {
     if (kopfX==0) { //raus oben
         verloren();
     }
@@ -195,6 +195,16 @@ void Steuerung::kollisionMitWand(int kopfX, int kopfY) {
     if (kopfY == rasterHoehe-1) {   //raus rechts
         verloren();
     }
+}
+
+void Steuerung::kollisionMitSichSelbst(int kopfX, int kopfY) {
+        const vector<tuple<int, int, int>>& segmente = schlange->gibSegmente();
+        // Der Kopf ist normalerweise das erste Segment
+        for (size_t i = 1; i < segmente.size(); ++i) { // Beginne bei 1, um den Kopf auszuschließen
+            if (get<1>(segmente[i]) == kopfX && get<2>(segmente[i]) == kopfY) {
+                verloren();  // Kollision mit sich selbst
+            }
+        }
 }
 
 Steuerung::Steuerung() {
