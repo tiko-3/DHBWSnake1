@@ -10,6 +10,7 @@
 #include <string>
 
 using namespace std;
+using namespace Gosu;
 
 class Steuerung;
 
@@ -31,6 +32,7 @@ public:
     const vector<tuple<int, int, int>>& gibSegmente() const { return segmente; }
     int gibRichtungX() { return richtungX; }
     int gibRichtungY() { return richtungY; }
+    int gibGroesse() {return segmente.size();}
 
 };
 
@@ -38,17 +40,17 @@ class Kaestchen {
 private:
     int posX;
     int posY;
-    Gosu::Color farbe;
+    Color farbe;
 
 public:
-    Kaestchen(int x = 0, int y = 0, Gosu::Color farbe = Gosu::Color::WHITE)
+    Kaestchen(int x = 0, int y = 0, Color farbe = Color::WHITE)
         : posX(x), posY(y), farbe(farbe) {}
 
     int gibPosX() const { return posX; }
     int gibPosY() const { return posY; }
-    Gosu::Color gibFarbe() const { return farbe; }
+    Color gibFarbe() const { return farbe; }
     void setzePosition(int x, int y) { posX = x; posY = y; }
-    void setzeFarbe(Gosu::Color neueFarbe) { farbe = neueFarbe; }
+    void setzeFarbe(Color neueFarbe) { farbe = neueFarbe; }
 };
 
 class Apfel {
@@ -72,7 +74,7 @@ private:
     const int rasterBreite = 10;
     const int rasterHoehe = 10;
     const int kaestchenGroesse = 50;
-    double aktualisierungsZeit = 0.5;
+    double aktualisierungsZeit = 0.25;
     int spielstand=1;     //0=start, 1=spielen, 2=verloren
 
     Kaestchen kaestchen[10][10];
@@ -92,6 +94,7 @@ public:
     void kollisionMitWand(int kopfX, int kopfY);
     void kollisionMitSichSelbst(int kopfX, int kopfY);
     void verloren();
+    int gibGroesseSchlange() { return schlange->gibGroesse();}
     int gibSpielstand() { return spielstand; }
     double gibaktualisierungsZeit() {return aktualisierungsZeit; }
     void setzteAktualisierungsZeit(int aktualisierungsZeit) {this->aktualisierungsZeit = aktualisierungsZeit;}
@@ -143,6 +146,7 @@ bool Schlange::isstApfel(int apfelX, int apfelY) {
     }
 }
 
+
 Apfel::Apfel(Steuerung* steuerung) : steuerung(steuerung) {
     srand(time(nullptr));
 }
@@ -179,6 +183,8 @@ array<int, 2> Apfel::randomApfelPos() {
 
     return rueckgabe;
 }
+
+
 
 void Steuerung::apfelEntfernen() {
     kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Gosu::Color::WHITE);
@@ -219,7 +225,7 @@ Steuerung::Steuerung() {
     int fensterBreite = 800; // Beispiel: Breite des Fensters
     int fensterHoehe = 600;  // Beispiel: Höhe des Fensters
 
-    // Offset zum Zentrieren des Spielfelds
+    // Offset verschiebt das Spielfeld um es zu zentrieren
     int offsetX = (fensterBreite - spielfeldBreite) / 2;
     int offsetY = (fensterHoehe - spielfeldHoehe) / 2;
 
@@ -245,7 +251,6 @@ Steuerung::Steuerung() {
     apfelPlatzieren();
 }
 
-
 Steuerung::~Steuerung() {
     delete apfel;
     delete schlange;
@@ -260,12 +265,15 @@ void Steuerung::verloren() {
 Kaestchen& Steuerung::gibKaestchen(int i, int j) {
     return kaestchen[i][j];
 }
+
 int Steuerung::gibApfelPosX() {
     return apfel->gibPosX();
 }
+
 int Steuerung::gibApfelPosY() {
     return apfel->gibPosY();
 }
+
 void Steuerung::apfelPlatzieren() { //von Apfel die neue position des Apfels in kästchen gespeichert
     array<int, 2> position = apfel->randomApfelPos();
     kaestchen[position[0]][position[1]].setzeFarbe(Gosu::Color::RED);
@@ -284,6 +292,7 @@ private:
     Steuerung* steuerung;
     double last_move_time;
     Gosu::Font font; // Zum Darstellen von Text
+    int buttonX, buttonY, buttonBreite, buttonHoehe;
 public:
     Oberflaeche() : Gosu::Window(800, 600), font(30), last_move_time(0) {
         set_caption("Snake");
@@ -303,6 +312,39 @@ public:
     }
 
     void draw() override {
+        if (steuerung->gibSpielstand() == 0) {
+            // Berechnung der Textgröße
+            std::string nachricht = "Spielfel";
+            double textBreite = font.text_width(nachricht);
+            double textHoehe = font.height();
+
+            // Positionierung des Textes in der Mitte des Bildschirms
+            double x = 400 - textBreite / 2;
+            double y = 300 - textHoehe / 2;
+
+            // Zeichne einen Kasten als Hintergrund für den Text
+            Gosu::Color kastenFarbe = Gosu::Color::BLACK;
+            Gosu::Color randFarbe = Gosu::Color::GRAY;
+
+            // Hintergrundrechteck zeichnen
+            Gosu::Graphics::draw_quad(
+                x - 10, y - 10, kastenFarbe,          // Oben links
+                x + textBreite + 10, y - 10, kastenFarbe,  // Oben rechts
+                x + textBreite + 10, y + textHoehe + 10, kastenFarbe,  // Unten rechts
+                x - 10, y + textHoehe + 10, kastenFarbe,  // Unten links
+                0  // Z-Ebene des Hintergrunds (unter dem Text)
+            );
+
+            // Zeichne einen weißen Rand um den Kasten (optional)
+            Gosu::Graphics::draw_quad(
+                x - 12, y - 12, randFarbe,          // Oben links
+                x + textBreite + 12, y - 12, randFarbe,  // Oben rechts
+                x + textBreite + 12, y + textHoehe + 12, randFarbe,  // Unten rechts
+                x - 12, y + textHoehe + 12, randFarbe,  // Unten links
+                1  // Z-Ebene des Randes (über dem Hintergrund, aber unter dem Text)
+            );
+
+        }
 
         if (steuerung->gibSpielstand() == 1|| steuerung->gibSpielstand() == 2) {
             int max = steuerung->gibGroesseFeld();
@@ -339,9 +381,9 @@ public:
         }
         if (steuerung->gibSpielstand()==2) {//verloren
             // Berechnung der Textgröße
-            std::string nachricht="Verloren";
+            string nachricht = "Verloren \nGröße: " + to_string(steuerung->gibGroesseSchlange());
             double textBreite = font.text_width(nachricht);
-            double textHoehe = font.height();
+            double textHoehe = font.height()*2;
 
             // Positionierung des Textes in der Mitte des Bildschirms
             double x = 400 - textBreite / 2;
