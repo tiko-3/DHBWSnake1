@@ -10,7 +10,6 @@
 #include <string>
 
 using namespace std;
-using namespace Gosu;
 
 class Steuerung;
 
@@ -32,25 +31,24 @@ public:
     const vector<tuple<int, int, int>>& gibSegmente() const { return segmente; }
     int gibRichtungX() { return richtungX; }
     int gibRichtungY() { return richtungY; }
-    int gibGroesse() {return segmente.size();}
-
+    int gibGroesse() { return segmente.size(); }
 };
 
 class Kaestchen {
 private:
     int posX;
     int posY;
-    Color farbe;
+    Gosu::Color farbe;
 
 public:
-    Kaestchen(int x = 0, int y = 0, Color farbe = Color::WHITE)
+    Kaestchen(int x = 0, int y = 0, Gosu::Color farbe = Gosu::Color::WHITE)
         : posX(x), posY(y), farbe(farbe) {}
 
     int gibPosX() const { return posX; }
     int gibPosY() const { return posY; }
-    Color gibFarbe() const { return farbe; }
+    Gosu::Color gibFarbe() const { return farbe; }
     void setzePosition(int x, int y) { posX = x; posY = y; }
-    void setzeFarbe(Color neueFarbe) { farbe = neueFarbe; }
+    void setzeFarbe(Gosu::Color neueFarbe) { farbe = neueFarbe; }
 };
 
 class Apfel {
@@ -74,8 +72,8 @@ private:
     const int rasterBreite = 10;
     const int rasterHoehe = 10;
     const int kaestchenGroesse = 50;
-    double aktualisierungsZeit = 0.25;
-    int spielstand=1;     //0=start, 1=spielen, 2=verloren
+    double aktualisierungsZeit = 0.5;
+    int spielstand = 1;     //0=start, 1=spielen, 2=verloren
 
     Kaestchen kaestchen[10][10];
     Apfel* apfel;
@@ -94,10 +92,10 @@ public:
     void kollisionMitWand(int kopfX, int kopfY);
     void kollisionMitSichSelbst(int kopfX, int kopfY);
     void verloren();
-    int gibGroesseSchlange() { return schlange->gibGroesse();}
     int gibSpielstand() { return spielstand; }
-    double gibaktualisierungsZeit() {return aktualisierungsZeit; }
-    void setzteAktualisierungsZeit(int aktualisierungsZeit) {this->aktualisierungsZeit = aktualisierungsZeit;}
+    double gibaktualisierungsZeit() { return aktualisierungsZeit; }
+    int gibGroessseSchlange() { return schlange->gibGroesse(); }
+    void setzteAktualisierungsZeit(int aktualisierungsZeit) { this->aktualisierungsZeit = aktualisierungsZeit; }
     Schlange* gibSchlange() { return schlange; }
 };
 
@@ -113,11 +111,12 @@ void Schlange::bewegen() {
     int neuerKopfY = get<2>(segmente.front()) + richtungY;
 
     if (isstApfel(steuerung->gibApfelPosX(), steuerung->gibApfelPosY())) {  //ob der Apfel gegessen wurde
-        steuerung->apfelGegessen(neuerKopfX,neuerKopfY);
-    }else {
+        steuerung->apfelGegessen(neuerKopfX, neuerKopfY);
+    }
+    else {
         segmente.pop_back();
     }
-    steuerung->kollisionMitWand(neuerKopfX,neuerKopfY);
+    steuerung->kollisionMitWand(neuerKopfX, neuerKopfY);
     steuerung->kollisionMitSichSelbst(neuerKopfX, neuerKopfY);
     segmente.insert(segmente.begin(), make_tuple(0, neuerKopfX, neuerKopfY));
 
@@ -146,21 +145,20 @@ bool Schlange::isstApfel(int apfelX, int apfelY) {
     }
 }
 
-
 Apfel::Apfel(Steuerung* steuerung) : steuerung(steuerung) {
     srand(time(nullptr));
 }
 
 array<int, 2> Apfel::randomApfelPos() {
-    int max = steuerung->gibGroesseFeld()-2;//-2 weil bei -1 sind wir auf dem letzten max feld, weil wir bei 0 anfangen mit zählen
+    int max = steuerung->gibGroesseFeld() - 2;//-2 weil bei -1 sind wir auf dem letzten max feld, weil wir bei 0 anfangen mit zählen
     bool belegt = true;
     int randX = 4;  // Apfel startet auf der gleichen x-Koordinate wie die Schlange
     int randY = 0;
     std::array<int, 2> rueckgabe = { 0, 0 };
 
     while (belegt) {
-        randX = (rand() % max) +1;  // neue zufällige Position
-        randY = (rand() % max) +1 ;
+        randX = (rand() % max) + 1;  // neue zufällige Position
+        randY = (rand() % max) + 1;
         belegt = false;  // initialisiere als nicht belegt
 
         const vector<tuple<int, int, int>>& segmente = steuerung->gibSchlange()->gibSegmente();
@@ -184,36 +182,34 @@ array<int, 2> Apfel::randomApfelPos() {
     return rueckgabe;
 }
 
-
-
 void Steuerung::apfelEntfernen() {
     kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Gosu::Color::WHITE);
-   
+
 }
 
 void Steuerung::kollisionMitWand(int kopfX, int kopfY) {
-    if (kopfX==0) { //raus oben
+    if (kopfX == 0) { //raus oben
         verloren();
     }
-    if (kopfY==0) {  //raus links
+    if (kopfY == 0) {  //raus links
         verloren();
     }
-    if (kopfX ==  rasterBreite-1) { //raus unten
+    if (kopfX == rasterBreite - 1) { //raus unten
         verloren();
     }
-    if (kopfY == rasterHoehe-1) {   //raus rechts
+    if (kopfY == rasterHoehe - 1) {   //raus rechts
         verloren();
     }
 }
 
 void Steuerung::kollisionMitSichSelbst(int kopfX, int kopfY) {
-        const vector<tuple<int, int, int>>& segmente = schlange->gibSegmente();
-        // Der Kopf ist normalerweise das erste Segment
-        for (size_t i = 1; i < segmente.size(); ++i) { // Beginne bei 1, um den Kopf auszuschließen
-            if (get<1>(segmente[i]) == kopfX && get<2>(segmente[i]) == kopfY) {
-                verloren();  // Kollision mit sich selbst
-            }
+    const vector<tuple<int, int, int>>& segmente = schlange->gibSegmente();
+    // Der Kopf ist normalerweise das erste Segment
+    for (size_t i = 1; i < segmente.size(); ++i) { // Beginne bei 1, um den Kopf auszuschließen
+        if (get<1>(segmente[i]) == kopfX && get<2>(segmente[i]) == kopfY) {
+            verloren();  // Kollision mit sich selbst
         }
+    }
 }
 
 Steuerung::Steuerung() {
@@ -225,7 +221,7 @@ Steuerung::Steuerung() {
     int fensterBreite = 800; // Beispiel: Breite des Fensters
     int fensterHoehe = 600;  // Beispiel: Höhe des Fensters
 
-    // Offset verschiebt das Spielfeld um es zu zentrieren
+    // Offset zum Zentrieren des Spielfelds
     int offsetX = (fensterBreite - spielfeldBreite) / 2;
     int offsetY = (fensterHoehe - spielfeldHoehe) / 2;
 
@@ -251,6 +247,7 @@ Steuerung::Steuerung() {
     apfelPlatzieren();
 }
 
+
 Steuerung::~Steuerung() {
     delete apfel;
     delete schlange;
@@ -265,15 +262,12 @@ void Steuerung::verloren() {
 Kaestchen& Steuerung::gibKaestchen(int i, int j) {
     return kaestchen[i][j];
 }
-
 int Steuerung::gibApfelPosX() {
     return apfel->gibPosX();
 }
-
 int Steuerung::gibApfelPosY() {
     return apfel->gibPosY();
 }
-
 void Steuerung::apfelPlatzieren() { //von Apfel die neue position des Apfels in kästchen gespeichert
     array<int, 2> position = apfel->randomApfelPos();
     kaestchen[position[0]][position[1]].setzeFarbe(Gosu::Color::RED);
@@ -292,7 +286,6 @@ private:
     Steuerung* steuerung;
     double last_move_time;
     Gosu::Font font; // Zum Darstellen von Text
-    int buttonX, buttonY, buttonBreite, buttonHoehe;
 public:
     Oberflaeche() : Gosu::Window(800, 600), font(30), last_move_time(0) {
         set_caption("Snake");
@@ -312,41 +305,8 @@ public:
     }
 
     void draw() override {
-        if (steuerung->gibSpielstand() == 0) {
-            // Berechnung der Textgröße
-            std::string nachricht = "Spielfel";
-            double textBreite = font.text_width(nachricht);
-            double textHoehe = font.height();
 
-            // Positionierung des Textes in der Mitte des Bildschirms
-            double x = 400 - textBreite / 2;
-            double y = 300 - textHoehe / 2;
-
-            // Zeichne einen Kasten als Hintergrund für den Text
-            Gosu::Color kastenFarbe = Gosu::Color::BLACK;
-            Gosu::Color randFarbe = Gosu::Color::GRAY;
-
-            // Hintergrundrechteck zeichnen
-            Gosu::Graphics::draw_quad(
-                x - 10, y - 10, kastenFarbe,          // Oben links
-                x + textBreite + 10, y - 10, kastenFarbe,  // Oben rechts
-                x + textBreite + 10, y + textHoehe + 10, kastenFarbe,  // Unten rechts
-                x - 10, y + textHoehe + 10, kastenFarbe,  // Unten links
-                0  // Z-Ebene des Hintergrunds (unter dem Text)
-            );
-
-            // Zeichne einen weißen Rand um den Kasten (optional)
-            Gosu::Graphics::draw_quad(
-                x - 12, y - 12, randFarbe,          // Oben links
-                x + textBreite + 12, y - 12, randFarbe,  // Oben rechts
-                x + textBreite + 12, y + textHoehe + 12, randFarbe,  // Unten rechts
-                x - 12, y + textHoehe + 12, randFarbe,  // Unten links
-                1  // Z-Ebene des Randes (über dem Hintergrund, aber unter dem Text)
-            );
-
-        }
-
-        if (steuerung->gibSpielstand() == 1|| steuerung->gibSpielstand() == 2) {
+        if (steuerung->gibSpielstand() == 1 || steuerung->gibSpielstand() == 2) {
             int max = steuerung->gibGroesseFeld();
             for (int i = 0; i < max; ++i) {
                 for (int j = 0; j < max; ++j) {
@@ -379,9 +339,10 @@ public:
                 }
             }
         }
-        if (steuerung->gibSpielstand()==2) {//verloren
+        if (steuerung->gibSpielstand() == 2) {//verloren
             // Berechnung der Textgröße
-            string nachricht = "Verloren \nGröße: " + to_string(steuerung->gibGroesseSchlange());
+            std::string nachricht = "Verloren \nGröße: " + std::to_string(steuerung->gibGroessseSchlange());
+
             double textBreite = font.text_width(nachricht);
             double textHoehe = font.height()*2;
 
@@ -414,7 +375,7 @@ public:
             // Zeichne den Text über den Kasten
             font.draw_text(nachricht, x, y, 2, 1.0, 1.0, Gosu::Color::RED);
         }
-        
+
     }
 
     void button_down(Gosu::Button btn) override {
@@ -432,7 +393,7 @@ public:
             steuerung->gibSchlange()->setzeRichtung(0, 1);
             break;
         case Gosu::KB_P:
-            cout<<"Pause";
+            cout << "Pause";
             break;
         default:
             break;
@@ -445,4 +406,3 @@ int main() {
     Oberflaeche fenster;
     fenster.show();
 }
-
