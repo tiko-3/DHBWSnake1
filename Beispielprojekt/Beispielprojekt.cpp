@@ -143,28 +143,36 @@ Apfel::Apfel(Steuerung* steuerung) : steuerung(steuerung) {
 array<int, 2> Apfel::randomApfelPos() {
     int max = steuerung->gibGroesseFeld();
     bool belegt = true;
-    int randX = 4;// Apfel startet auf der gleichen x-Koordinate wie die Schlange
-    int randY = 0; 
+    int randX = 4;  // Apfel startet auf der gleichen x-Koordinate wie die Schlange
+    int randY = 0;
     std::array<int, 2> rueckgabe = { 0, 0 };
-    while (belegt==true) {
-        randX = rand() % max;//neue random position
+
+    while (belegt) {
+        randX = rand() % max;  // neue zufällige Position
         randY = rand() % max;
+        belegt = false;  // initialisiere als nicht belegt
+
         const vector<tuple<int, int, int>>& segmente = steuerung->gibSchlange()->gibSegmente();
-          for (const auto& segment : segmente) {
-              if (get<1>(segment) != randX && get<2>(segment) != randY) { //schauen ob random pos unterschiedlich mit schlange ist
-                belegt = false;
-                posX = randX;
-                posY = randY;
-                rueckgabe = { randX, randY };
-                menge++;  
-              }else {
-                 belegt = true;
-                 break;
-              }
-          }
+
+        for (const auto& segment : segmente) {
+            if (get<1>(segment) == randX && get<2>(segment) == randY) {
+                belegt = true;  // Position ist belegt
+                break;  // keine weitere Prüfung notwendig, Position ist besetzt
+            }
+        }
+
+        // Wenn die Position nicht belegt ist, speichere sie
+        if (!belegt) {
+            posX = randX;
+            posY = randY;
+            rueckgabe = { randX, randY };
+            menge++;  // möglicherweise eine Menge von Äpfeln, die du zählst?
+        }
     }
+
     return rueckgabe;
 }
+
 
 void Steuerung::apfelEntfernen() {
     kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Gosu::Color::WHITE);
@@ -239,15 +247,14 @@ int Steuerung::gibApfelPosX() {
 int Steuerung::gibApfelPosY() {
     return apfel->gibPosY();
 }
-void Steuerung::apfelPlatzieren() {
-    std::array<int, 2> position = apfel->randomApfelPos();
+void Steuerung::apfelPlatzieren() { //von Apfel die neue position des Apfels in kästchen gespeichert
+    array<int, 2> position = apfel->randomApfelPos();
     kaestchen[position[0]][position[1]].setzeFarbe(Gosu::Color::RED);
 }
 
 void Steuerung::apfelGegessen(int posX, int posY) {
     if (kaestchen[apfel->gibPosX()][apfel->gibPosY()].gibFarbe() == Gosu::Color::RED) {
-        apfel->apfelMengedec();
-        kaestchen[posX][posY].setzeFarbe(Gosu::Color::WHITE);//apfel weiß setzten funktioniert nicht
+        apfel->apfelMengedec();//Apfel menge wird um eins verringert (wenn es mehrere Äpfel gibt)
         apfelEntfernen();
         apfelPlatzieren();
     }
