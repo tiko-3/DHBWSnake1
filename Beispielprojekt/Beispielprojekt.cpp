@@ -15,8 +15,8 @@ class Steuerung;
 class Schlange {
 private:
     vector<tuple<int, int, int>> segmente;  // Die Schlange als Liste von Segmenten (Stelle der Schlange, x, y Kästchen)
-    int richtungX = 1; 
-    int richtungY = 0;  
+    int richtungX = 1; //-1 nach oben, 1 nach unten
+    int richtungY = 0;  // 1 nach rechts, -1 nach links
     Gosu::Color farbe;
     Steuerung* steuerung;
 
@@ -29,7 +29,9 @@ public:
     bool isstApfel(int apfelX, int apfelY);
     tuple<int, int, int> gibKopf() const { return segmente.front(); }
     const vector<tuple<int, int, int>>& gibSegmente() const { return segmente; }
-    void kollisionMitWand();
+    int gibRichtungX() { return richtungX; }
+    int gibRichtungY() { return richtungY; }
+
 };
 
 class Kaestchen {
@@ -85,6 +87,7 @@ public:
     void apfelEntfernen();
     void apfelPlatzieren();
     void apfelGegessen(int posX, int posY);
+    void kollisionMitWand(int kopfX, int kopfY);
     void verloren();
     Schlange* gibSchlange() { return schlange; }
 };
@@ -100,12 +103,15 @@ void Schlange::bewegen() {
     int neuerKopfX = get<1>(segmente.front()) + richtungX;
     int neuerKopfY = get<2>(segmente.front()) + richtungY;
 
+    cout << neuerKopfX;
+    cout << neuerKopfY;
+
     if (isstApfel(steuerung->gibApfelPosX(), steuerung->gibApfelPosY())) {  //ob der Apfel gegessen wurde
         steuerung->apfelGegessen(neuerKopfX,neuerKopfY);
     }else {
         segmente.pop_back();
     }
-    kollisionMitWand();
+    steuerung->kollisionMitWand(neuerKopfX,neuerKopfY);
     segmente.insert(segmente.begin(), make_tuple(0, neuerKopfX, neuerKopfY));
 
     for (int i = 0; i < segmente.size(); i++) {
@@ -171,22 +177,22 @@ void Steuerung::apfelEntfernen() {
     kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Gosu::Color::WHITE);
    
 }
-void Schlange::kollisionMitWand() {
-    int max = steuerung->gibGroesseFeld(); 
-    int neuerKopfX = get<1>(segmente.front()) + richtungX;
-    int neuerKopfY = get<1>(segmente.front()) + richtungY;
+void Steuerung::kollisionMitWand(int kopfX, int kopfY) {
 
-    if (neuerKopfX < 0) { //unten Raus
-        steuerung->verloren();
+    int richtungX = 1; //-1 nach oben, 1 nach unten
+    int richtungY = 0;  // 1 nach rechts, -1 nach links
+
+        if (kopfX==0&&schlange->gibRichtungX()==1) { //unten Raus
+        verloren();
     }
-    if (neuerKopfY < 0) {
-        steuerung->verloren();
+    if (kopfY ==0 & schlange->gibRichtungY() == -1) {  //links raus
+        verloren();
     }
-    if (neuerKopfX > 0) { //unten Raus
-        steuerung->verloren();
+    if (kopfX > 0) { //unten Raus
+        verloren();
     }
-    if (neuerKopfY > 0) {
-        steuerung->verloren();
+    if (kopfY > 0) {
+        verloren();
     }
 
    /* for (int i = 0; i < max; ++i) {
@@ -227,6 +233,9 @@ Steuerung::~Steuerung() {
     delete schlange;
 }
 
+void Steuerung::verloren() {
+    cout << "verloren";
+}
 
 Kaestchen& Steuerung::gibKaestchen(int i, int j) {
     return kaestchen[i][j];
@@ -322,10 +331,14 @@ public:
         case Gosu::KB_D:  // nach rechts
             steuerung->gibSchlange()->setzeRichtung(0, 1);
             break;
+        case Gosu::KB_P:
+            cout<<"Pause";
+            break;
         default:
             break;
         }
     }
+
 };
 
 int main() {
