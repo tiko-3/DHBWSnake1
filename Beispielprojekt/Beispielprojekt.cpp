@@ -10,6 +10,7 @@
 #include <string>
 
 using namespace std;
+using namespace Gosu;
 
 class Steuerung;
 
@@ -18,12 +19,12 @@ private:
     vector<tuple<int, int, int>> segmente;  // Die Schlange als Liste von Segmenten (Stelle der Schlange, x, y Kästchen)
     int richtungX = 1; //-1 nach oben, 1 nach unten
     int richtungY = 0;  // 1 nach rechts, -1 nach links
-    Gosu::Color farbe;
+    Color farbe;
     Steuerung* steuerung;
 
 public:
     Schlange(Steuerung* steuerung);
-    Gosu::Color gibFarbe() const { return farbe; }
+    Color gibFarbe() const { return farbe; }
     void bewegen();
     void setzeRichtung(int x, int y);
     bool isstApfel(int apfelX, int apfelY);
@@ -38,17 +39,17 @@ class Kaestchen {
 private:
     int posX;
     int posY;
-    Gosu::Color farbe;
+    Color farbe;
 
 public:
-    Kaestchen(int x = 0, int y = 0, Gosu::Color farbe = Gosu::Color::WHITE)
+    Kaestchen(int x = 0, int y = 0, Color farbe = Color::WHITE)
         : posX(x), posY(y), farbe(farbe) {}
 
     int gibPosX() const { return posX; }
     int gibPosY() const { return posY; }
-    Gosu::Color gibFarbe() const { return farbe; }
+    Color gibFarbe() const { return farbe; }
     void setzePosition(int x, int y) { posX = x; posY = y; }
-    void setzeFarbe(Gosu::Color neueFarbe) { farbe = neueFarbe; }
+    void setzeFarbe(Color neueFarbe) { farbe = neueFarbe; }
 };
 
 class Apfel {
@@ -103,7 +104,7 @@ public:
 Schlange::Schlange(Steuerung* steuerung) : steuerung(steuerung) {
     // Schlange startet auf Y-Koordinate 4
     segmente.push_back(make_tuple(0, 4, 4));  // Startposition in der Mitte des Rasters
-    farbe = Gosu::Color::GREEN;
+    farbe = Color::GREEN;
 }
 
 void Schlange::bewegen() {
@@ -183,7 +184,7 @@ array<int, 2> Apfel::randomApfelPos() {
 }
 
 void Steuerung::apfelEntfernen() {
-    kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Gosu::Color::WHITE);
+    kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Color::WHITE);
 
 }
 
@@ -230,11 +231,11 @@ Steuerung::Steuerung() {
         for (int j = 0; j < rasterBreite; ++j) {
             // Position jedes Kästchens berechnen und den Offset hinzufügen
             kaestchen[i][j].setzePosition(offsetX + j * kaestchenGroesse, offsetY + i * kaestchenGroesse);
-            kaestchen[i][j].setzeFarbe(Gosu::Color::WHITE);
+            kaestchen[i][j].setzeFarbe(Color::WHITE);
 
             // Setze die Ränder des Spielfelds auf grau
             if (i == 0 || j == 0 || i == rasterHoehe - 1 || j == rasterBreite - 1) {
-                kaestchen[i][j].setzeFarbe(Gosu::Color::GRAY);
+                kaestchen[i][j].setzeFarbe(Color::GRAY);
             }
         }
     }
@@ -270,24 +271,24 @@ int Steuerung::gibApfelPosY() {
 }
 void Steuerung::apfelPlatzieren() { //von Apfel die neue position des Apfels in kästchen gespeichert
     array<int, 2> position = apfel->randomApfelPos();
-    kaestchen[position[0]][position[1]].setzeFarbe(Gosu::Color::RED);
+    kaestchen[position[0]][position[1]].setzeFarbe(Color::RED);
 }
 
 void Steuerung::apfelGegessen(int posX, int posY) {
-    if (kaestchen[apfel->gibPosX()][apfel->gibPosY()].gibFarbe() == Gosu::Color::RED) {
+    if (kaestchen[apfel->gibPosX()][apfel->gibPosY()].gibFarbe() == Color::RED) {
         apfel->apfelMengedec();//Apfel menge wird um eins verringert (wenn es mehrere Äpfel gibt)
         apfelEntfernen();
         apfelPlatzieren();
     }
 }
 
-class Oberflaeche : public Gosu::Window {
+class Oberflaeche : public Window {
 private:
     Steuerung* steuerung;
     double last_move_time;
-    Gosu::Font font; // Zum Darstellen von Text
+    Font font; // Zum Darstellen von Text
 public:
-    Oberflaeche() : Gosu::Window(800, 600), font(30), last_move_time(0) {
+    Oberflaeche() : Window(800, 600), font(30), last_move_time(0) {
         set_caption("Snake");
         steuerung = new Steuerung();
     }
@@ -297,7 +298,7 @@ public:
     }
 
     void update() override {
-        double current_time = Gosu::milliseconds() / 1000.0;
+        double current_time = milliseconds() / 1000.0;
         if (current_time - last_move_time >= steuerung->gibaktualisierungsZeit()) {  // Bewegung alle 0,5 Sekunden
             steuerung->gibSchlange()->bewegen();
             last_move_time = current_time;
@@ -305,6 +306,11 @@ public:
     }
 
     void draw() override {
+
+
+        if (steuerung->gibSpielstand() == 0) {
+
+        }
 
         if (steuerung->gibSpielstand() == 1 || steuerung->gibSpielstand() == 2) {
             int max = steuerung->gibGroesseFeld();
@@ -314,17 +320,17 @@ public:
                     int x = k.gibPosX();
                     int y = k.gibPosY();
 
-                    Gosu::Color farbe = k.gibFarbe();
+                    Color farbe = k.gibFarbe();
 
                     const vector<tuple<int, int, int>>& segmente = steuerung->gibSchlange()->gibSegmente();
                     for (const auto& segment : segmente) {
                         if (get<1>(segment) == i && get<2>(segment) == j) {
-                            farbe = Gosu::Color::GREEN;
+                            farbe = Color::GREEN;
                             break;
                         }
                     }
 
-                    Gosu::Graphics::draw_quad(
+                    Graphics::draw_quad(
                         x, y, farbe,
                         x + 50, y, farbe,
                         x + 50, y + 50, farbe,
@@ -332,10 +338,10 @@ public:
                         0
                     );
 
-                    Gosu::Graphics::draw_line(x, y, Gosu::Color::BLACK, x + 50, y, Gosu::Color::BLACK, 0);
-                    Gosu::Graphics::draw_line(x, y + 50, Gosu::Color::BLACK, x + 50, y + 50, Gosu::Color::BLACK, 0);
-                    Gosu::Graphics::draw_line(x, y, Gosu::Color::BLACK, x, y + 50, Gosu::Color::BLACK, 0);
-                    Gosu::Graphics::draw_line(x + 50, y, Gosu::Color::BLACK, x + 50, y + 50, Gosu::Color::BLACK, 0);
+                    Graphics::draw_line(x, y, Color::BLACK, x + 50, y, Color::BLACK, 0);
+                    Graphics::draw_line(x, y + 50, Color::BLACK, x + 50, y + 50, Color::BLACK, 0);
+                    Graphics::draw_line(x, y, Color::BLACK, x, y + 50, Color::BLACK, 0);
+                    Graphics::draw_line(x + 50, y, Color::BLACK, x + 50, y + 50, Color::BLACK, 0);
                 }
             }
         }
@@ -351,11 +357,11 @@ public:
             double y = 300 - textHoehe / 2;
 
             // Zeichne einen Kasten als Hintergrund für den Text
-            Gosu::Color kastenFarbe = Gosu::Color::BLACK;
-            Gosu::Color randFarbe = Gosu::Color::GRAY;
+            Color kastenFarbe = Color::BLACK;
+            Color randFarbe = Color::GRAY;
 
             // Hintergrundrechteck zeichnen
-            Gosu::Graphics::draw_quad(
+            Graphics::draw_quad(
                 x - 10, y - 10, kastenFarbe,          // Oben links
                 x + textBreite + 10, y - 10, kastenFarbe,  // Oben rechts
                 x + textBreite + 10, y + textHoehe + 10, kastenFarbe,  // Unten rechts
@@ -364,7 +370,7 @@ public:
             );
 
             // Zeichne einen weißen Rand um den Kasten (optional)
-            Gosu::Graphics::draw_quad(
+            Graphics::draw_quad(
                 x - 12, y - 12, randFarbe,          // Oben links
                 x + textBreite + 12, y - 12, randFarbe,  // Oben rechts
                 x + textBreite + 12, y + textHoehe + 12, randFarbe,  // Unten rechts
@@ -373,26 +379,25 @@ public:
             );
 
             // Zeichne den Text über den Kasten
-            font.draw_text(nachricht, x, y, 2, 1.0, 1.0, Gosu::Color::RED);
+            font.draw_text(nachricht, x, y, 2, 1.0, 1.0, Color::RED);
         }
-
     }
 
-    void button_down(Gosu::Button btn) override {
+    void button_down(Button btn) override {
         switch (btn) {
-        case Gosu::KB_W:  // nach oben
+        case KB_W:  // nach oben
             steuerung->gibSchlange()->setzeRichtung(-1, 0);
             break;
-        case Gosu::KB_S:  // nach unten
+        case KB_S:  // nach unten
             steuerung->gibSchlange()->setzeRichtung(1, 0);
             break;
-        case Gosu::KB_A:  // nach links
+        case KB_A:  // nach links
             steuerung->gibSchlange()->setzeRichtung(0, -1);
             break;
-        case Gosu::KB_D:  // nach rechts
+        case KB_D:  // nach rechts
             steuerung->gibSchlange()->setzeRichtung(0, 1);
             break;
-        case Gosu::KB_P:
+        case KB_P:
             cout << "Pause";
             break;
         default:
