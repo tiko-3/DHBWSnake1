@@ -15,8 +15,8 @@ class Steuerung;
 class Schlange {
 private:
     vector<tuple<int, int, int>> segmente;  // Die Schlange als Liste von Segmenten (Stelle der Schlange, x, y Kästchen)
-    int richtungX = 1;  // 1: nach rechts, -1: nach links, 0: keine Bewegung in X-Richtung
-    int richtungY = 0;  // 1: nach unten, -1: nach oben, 0: keine Bewegung in Y-Richtung
+    int richtungX = 1; 
+    int richtungY = 0;  
     Gosu::Color farbe;
     Steuerung* steuerung;
 
@@ -29,6 +29,7 @@ public:
     bool isstApfel(int apfelX, int apfelY);
     tuple<int, int, int> gibKopf() const { return segmente.front(); }
     const vector<tuple<int, int, int>>& gibSegmente() const { return segmente; }
+    void kollisionMitWand();
 };
 
 class Kaestchen {
@@ -84,6 +85,7 @@ public:
     void apfelEntfernen();
     void apfelPlatzieren();
     void apfelGegessen(int posX, int posY);
+    void verloren();
     Schlange* gibSchlange() { return schlange; }
 };
 
@@ -98,13 +100,12 @@ void Schlange::bewegen() {
     int neuerKopfX = get<1>(segmente.front()) + richtungX;
     int neuerKopfY = get<2>(segmente.front()) + richtungY;
 
-    if (isstApfel(steuerung->gibApfelPosX(), steuerung->gibApfelPosY())) {
+    if (isstApfel(steuerung->gibApfelPosX(), steuerung->gibApfelPosY())) {  //ob der Apfel gegessen wurde
         steuerung->apfelGegessen(neuerKopfX,neuerKopfY);
-    }
-    else {
+    }else {
         segmente.pop_back();
     }
-
+    kollisionMitWand();
     segmente.insert(segmente.begin(), make_tuple(0, neuerKopfX, neuerKopfY));
 
     for (int i = 0; i < segmente.size(); i++) {
@@ -148,13 +149,10 @@ array<int, 2> Apfel::randomApfelPos() {
 
         for (int i = 0; i < max; ++i) {
             for (int j = 0; j < max; ++j) {
-                Kaestchen& k = steuerung->gibKaestchen(randX, randY);   //kästchen bei random position
-                int x = k.gibPosX();
-                int y = k.gibPosY();
-
+                Kaestchen& k = steuerung->gibKaestchen(randX, randY);   //kästchen bei random position holen
                 const vector<tuple<int, int, int>>& segmente = steuerung->gibSchlange()->gibSegmente();
                 for (const auto& segment : segmente) {
-                    if (get<1>(segment) != randX && get<2>(segment) != randY) {
+                    if (get<1>(segment) != randX && get<2>(segment) != randY) { //schauen ob random pos unterschiedlich mit schlange ist
                         belegt = false;
                         posX = randX;
                         posY = randY;
@@ -172,6 +170,43 @@ array<int, 2> Apfel::randomApfelPos() {
 void Steuerung::apfelEntfernen() {
     kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Gosu::Color::WHITE);
    
+}
+void Schlange::kollisionMitWand() {
+    int max = steuerung->gibGroesseFeld(); 
+    int neuerKopfX = get<1>(segmente.front()) + richtungX;
+    int neuerKopfY = get<1>(segmente.front()) + richtungY;
+
+    if (neuerKopfX < 0) { //unten Raus
+        steuerung->verloren();
+    }
+    if (neuerKopfY < 0) {
+        steuerung->verloren();
+    }
+    if (neuerKopfX > 0) { //unten Raus
+        steuerung->verloren();
+    }
+    if (neuerKopfY > 0) {
+        steuerung->verloren();
+    }
+
+   /* for (int i = 0; i < max; ++i) {
+            Kaestchen& k = steuerung->gibKaestchen(i, 0); //unterer Rand
+
+    }
+
+    for (int i = 0; i < max; ++i) {
+        Kaestchen& k = steuerung->gibKaestchen(0, i); //linker Rand
+
+    }
+    for (int i = 0; i < max; ++i) {
+        Kaestchen& k = steuerung->gibKaestchen(i, max); //oberer Rand
+
+    }
+    for (int i = 0; i < max; ++i) {
+        Kaestchen& k = steuerung->gibKaestchen(max, i); //rechter Rand
+
+    }*/
+
 }
 
 Steuerung::Steuerung() {
