@@ -73,7 +73,7 @@ private:
     const int rasterHoehe = 10;
     const int kaestchenGroesse = 50;
     double aktualisierungsZeit = 0.5;
-    int spielstand;     //0=start, 1=spielen, 2=verloren
+    int spielstand=1;     //0=start, 1=spielen, 2=verloren
 
     Kaestchen kaestchen[10][10];
     Apfel* apfel;
@@ -211,22 +211,40 @@ void Steuerung::kollisionMitSichSelbst(int kopfX, int kopfY) {
 }
 
 Steuerung::Steuerung() {
+    // Berechne den Offset, um das Spielfeld zu zentrieren
+    int spielfeldBreite = rasterBreite * kaestchenGroesse;
+    int spielfeldHoehe = rasterHoehe * kaestchenGroesse;
+
+    // Fenstergröße (angenommen, das Fenster ist 800x600, du musst dies anpassen, wenn es anders ist)
+    int fensterBreite = 800; // Beispiel: Breite des Fensters
+    int fensterHoehe = 600;  // Beispiel: Höhe des Fensters
+
+    // Offset zum Zentrieren des Spielfelds
+    int offsetX = (fensterBreite - spielfeldBreite) / 2;
+    int offsetY = (fensterHoehe - spielfeldHoehe) / 2;
+
+    // Initialisiere die Kästchen mit zentrierten Positionen
     for (int i = 0; i < rasterHoehe; ++i) {
         for (int j = 0; j < rasterBreite; ++j) {
-            kaestchen[i][j].setzePosition(j * kaestchenGroesse, i * kaestchenGroesse);
+            // Position jedes Kästchens berechnen und den Offset hinzufügen
+            kaestchen[i][j].setzePosition(offsetX + j * kaestchenGroesse, offsetY + i * kaestchenGroesse);
             kaestchen[i][j].setzeFarbe(Gosu::Color::WHITE);
-            if (i==0|| j == 0|| i == rasterHoehe - 1|| j == rasterBreite - 1) {  
+
+            // Setze die Ränder des Spielfelds auf grau
+            if (i == 0 || j == 0 || i == rasterHoehe - 1 || j == rasterBreite - 1) {
                 kaestchen[i][j].setzeFarbe(Gosu::Color::GRAY);
-
             }
-
         }
     }
+
+    // Apfel und Schlange initialisieren
     apfel = new Apfel(this);
     schlange = new Schlange(this);
 
+    // Apfel platzieren
     apfelPlatzieren();
 }
+
 
 Steuerung::~Steuerung() {
     delete apfel;
@@ -285,39 +303,41 @@ public:
     }
 
     void draw() override {
-        int max = steuerung->gibGroesseFeld();
-        for (int i = 0; i < max; ++i) {
-            for (int j = 0; j < max; ++j) {
-                Kaestchen& k = steuerung->gibKaestchen(i, j);
-                int x = k.gibPosX();
-                int y = k.gibPosY();
 
-                Gosu::Color farbe = k.gibFarbe();
+        if (steuerung->gibSpielstand() == 1|| steuerung->gibSpielstand() == 2) {
+            int max = steuerung->gibGroesseFeld();
+            for (int i = 0; i < max; ++i) {
+                for (int j = 0; j < max; ++j) {
+                    Kaestchen& k = steuerung->gibKaestchen(i, j);
+                    int x = k.gibPosX();
+                    int y = k.gibPosY();
 
-                const vector<tuple<int, int, int>>& segmente = steuerung->gibSchlange()->gibSegmente();
-                for (const auto& segment : segmente) {
-                    if (get<1>(segment) == i && get<2>(segment) == j) {
-                        farbe = Gosu::Color::GREEN;
-                        break;
+                    Gosu::Color farbe = k.gibFarbe();
+
+                    const vector<tuple<int, int, int>>& segmente = steuerung->gibSchlange()->gibSegmente();
+                    for (const auto& segment : segmente) {
+                        if (get<1>(segment) == i && get<2>(segment) == j) {
+                            farbe = Gosu::Color::GREEN;
+                            break;
+                        }
                     }
+
+                    Gosu::Graphics::draw_quad(
+                        x, y, farbe,
+                        x + 50, y, farbe,
+                        x + 50, y + 50, farbe,
+                        x, y + 50, farbe,
+                        0
+                    );
+
+                    Gosu::Graphics::draw_line(x, y, Gosu::Color::BLACK, x + 50, y, Gosu::Color::BLACK, 0);
+                    Gosu::Graphics::draw_line(x, y + 50, Gosu::Color::BLACK, x + 50, y + 50, Gosu::Color::BLACK, 0);
+                    Gosu::Graphics::draw_line(x, y, Gosu::Color::BLACK, x, y + 50, Gosu::Color::BLACK, 0);
+                    Gosu::Graphics::draw_line(x + 50, y, Gosu::Color::BLACK, x + 50, y + 50, Gosu::Color::BLACK, 0);
                 }
-
-                Gosu::Graphics::draw_quad(
-                    x, y, farbe,
-                    x + 50, y, farbe,
-                    x + 50, y + 50, farbe,
-                    x, y + 50, farbe,
-                    0
-                );
-
-                Gosu::Graphics::draw_line(x, y, Gosu::Color::BLACK, x + 50, y, Gosu::Color::BLACK, 0);
-                Gosu::Graphics::draw_line(x, y + 50, Gosu::Color::BLACK, x + 50, y + 50, Gosu::Color::BLACK, 0);
-                Gosu::Graphics::draw_line(x, y, Gosu::Color::BLACK, x, y + 50, Gosu::Color::BLACK, 0);
-                Gosu::Graphics::draw_line(x + 50, y, Gosu::Color::BLACK, x + 50, y + 50, Gosu::Color::BLACK, 0);
             }
         }
-
-        if (steuerung->gibSpielstand()==2) {        //verloren
+        if (steuerung->gibSpielstand()==2) {//verloren
             // Berechnung der Textgröße
             std::string nachricht="Verloren";
             double textBreite = font.text_width(nachricht);
@@ -329,7 +349,7 @@ public:
 
             // Zeichne einen Kasten als Hintergrund für den Text
             Gosu::Color kastenFarbe = Gosu::Color::BLACK;
-            Gosu::Color randFarbe = Gosu::Color::WHITE;
+            Gosu::Color randFarbe = Gosu::Color::GRAY;
 
             // Hintergrundrechteck zeichnen
             Gosu::Graphics::draw_quad(
