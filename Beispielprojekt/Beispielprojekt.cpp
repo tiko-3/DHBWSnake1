@@ -92,6 +92,7 @@ public:
     void apfelGegessen(int posX, int posY);
     void kollisionMitWand(int kopfX, int kopfY);
     void kollisionMitSichSelbst(int kopfX, int kopfY);
+    bool bewegenErlaubt(int richtung);
     void verloren();
     int gibSpielstand() { return spielstand; }
     double gibaktualisierungsZeit() { return aktualisierungsZeit; }
@@ -203,6 +204,44 @@ void Steuerung::kollisionMitWand(int kopfX, int kopfY) {
     }
 }
 
+bool Steuerung::bewegenErlaubt(int richtung) {
+    //hoch=0,runter=1, links=2, rechts=3
+    //position des Kopfes holen und in ein automatische erstellter vektor
+    auto erstesElement = schlange->gibSegmente().front(); 
+    int x1, y1, z1;
+    // einzelnen Elemente eines tuple auf separate Variablen zu verteilen, anstatt sie manuell mit get<index>(...) aus dem Tupel zu extrahieren.
+    tie(x1, y1, z1) = erstesElement; //extrahiert die Werte aus dem tuple
+    std::cout << "x: " << x1 << ", y: " << y1 << ", z: " << z1 << std::endl;
+
+   auto zweitesElement = schlange->gibSegmente()[1];  // Zugriff auf das zweite Element
+   int x2, y2, z2;
+   tie(x2, y2, z2) = zweitesElement;
+
+    //std::cout << "x2: " << x2 << ", y2: " << y2 << ", z2: " << z2 << std::endl;
+
+    if (x1==(x2-1)&&y1==y2) {        //zweites element ist rechts von kopf||gleiche Zeile
+        if (richtung==3) {  //verboten nach rechts zu gehen
+            return false;
+        }
+    }
+    if (x1 == (x2 + 1) && y1 == y2) {  //zweites element ist links von Kopf||beide auf gleiche Zeile
+        if (richtung == 2) {    //verboten nach links zu gehen
+            return false;
+        }
+    }
+    if (x1 == x2 && y1 == (y2 - 1)) {// gleiche Spalte und Kopf ist über zweitem Element
+        if (richtung==1) {    //verboten anch unten zu gehen
+            return false;
+        }
+     }
+    if (x1 == x2 && y1 == (y2 + 1)) {
+        if (richtung == 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void Steuerung::kollisionMitSichSelbst(int kopfX, int kopfY) {
     const vector<tuple<int, int, int>>& segmente = schlange->gibSegmente();
     // Der Kopf ist normalerweise das erste Segment
@@ -227,6 +266,7 @@ Steuerung::Steuerung() {
     int offsetY = (fensterHoehe - spielfeldHoehe) / 2;
 
     // Initialisiere die Kästchen mit zentrierten Positionen
+    //links oben ist [0][0]
     for (int i = 0; i < rasterHoehe; ++i) {
         for (int j = 0; j < rasterBreite; ++j) {
             // Position jedes Kästchens berechnen und den Offset hinzufügen
@@ -386,19 +426,32 @@ public:
     void button_down(Button btn) override {
         switch (btn) {
         case KB_W:  // nach oben
-            steuerung->gibSchlange()->setzeRichtung(-1, 0);
+            if (steuerung->bewegenErlaubt(0) == true) {      //hoch=0
+                steuerung->gibSchlange()->setzeRichtung(-1, 0);
+            }
             break;
         case KB_S:  // nach unten
-            steuerung->gibSchlange()->setzeRichtung(1, 0);
+            //runter 1
+            if (steuerung->bewegenErlaubt(0) == true) {
+                steuerung->gibSchlange()->setzeRichtung(1, 0);
+            }
             break;
         case KB_A:  // nach links
-            steuerung->gibSchlange()->setzeRichtung(0, -1);
+            //links=2
+            if (steuerung->bewegenErlaubt(0) == true) {
+                steuerung->gibSchlange()->setzeRichtung(0, -1);
+            }
             break;
         case KB_D:  // nach rechts
-            steuerung->gibSchlange()->setzeRichtung(0, 1);
+            //rechts=3
+            if (steuerung->bewegenErlaubt(0) == true) {
+                steuerung->gibSchlange()->setzeRichtung(0, 1);
+            }
             break;
         case KB_P:
-            cout << "Pause";
+            if (steuerung->bewegenErlaubt(0) == true) {
+                cout << "Pause";
+            }
             break;
         default:
             break;
