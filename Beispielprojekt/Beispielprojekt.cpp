@@ -105,6 +105,8 @@ public:
 Schlange::Schlange(Steuerung* steuerung) : steuerung(steuerung) {
     // Schlange startet auf Y-Koordinate 4
     segmente.push_back(make_tuple(0, 4, 4));  // Startposition in der Mitte des Rasters
+    segmente.push_back(make_tuple(1, 3, 4));  // körper hinzufügen
+    segmente.push_back(make_tuple(1, 2, 4));
     farbe = Color::GREEN;
 }
 
