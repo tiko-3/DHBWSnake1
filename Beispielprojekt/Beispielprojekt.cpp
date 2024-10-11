@@ -9,6 +9,8 @@
 #include <tuple>
 #include <string>
 
+//gewonnen fehlt
+
 using namespace std;
 using namespace Gosu;
 
@@ -20,6 +22,7 @@ private:
     int richtungX = 1; //-1 nach oben, 1 nach unten
     int richtungY = 0;  // 1 nach rechts, -1 nach links
     Color farbe;
+    bool richtungAndernErlaubt = true;      //blockiert mehrfache eingaben
     Steuerung* steuerung;
 
 public:
@@ -32,6 +35,7 @@ public:
     const vector<tuple<int, int, int>>& gibSegmente() const { return segmente; }
     int gibRichtungX() { return richtungX; }
     int gibRichtungY() { return richtungY; }
+    bool gibRichtungAndernErlaubt(){  return richtungAndernErlaubt;}
     int gibGroesse() { return segmente.size(); }
 };
 
@@ -87,12 +91,12 @@ public:
     Kaestchen& gibKaestchen(int i, int j);
     int gibApfelPosX();
     int gibApfelPosY();
+    bool gibRichtungAndernErlaubt();//gibt den Wert von Schlange weiter
     void apfelEntfernen();
     void apfelPlatzieren();
     void apfelGegessen(int posX, int posY);
     void kollisionMitWand(int kopfX, int kopfY);
     void kollisionMitSichSelbst(int kopfX, int kopfY);
-    bool bewegenErlaubt(int richtung);
     void verloren();
     int gibSpielstand() { return spielstand; }
     double gibaktualisierungsZeit() { return aktualisierungsZeit; }
@@ -111,13 +115,12 @@ Schlange::Schlange(Steuerung* steuerung) : steuerung(steuerung) {
 }
 
 void Schlange::bewegen() {
-    int neuerKopfX = get<1>(segmente.front()) + richtungX;
-    int neuerKopfY = get<2>(segmente.front()) + richtungY;
+    int neuerKopfX = get<1>(segmente.front()) + richtungX;//holt die X position des Kopfes
+    int neuerKopfY = get<2>(segmente.front()) + richtungY;//holt die Y position des Kopfes
 
     if (isstApfel(steuerung->gibApfelPosX(), steuerung->gibApfelPosY())) {  //ob der Apfel gegessen wurde
         steuerung->apfelGegessen(neuerKopfX, neuerKopfY);
-    }
-    else {
+    }else {
         segmente.pop_back();
     }
     steuerung->kollisionMitWand(neuerKopfX, neuerKopfY);
@@ -127,6 +130,7 @@ void Schlange::bewegen() {
     for (int i = 0; i < segmente.size(); i++) {
         get<0>(segmente[i]) = i;
     }
+    richtungAndernErlaubt = true;   //Tasteneingaben wieder erlauben
 }
 
 void Schlange::setzeRichtung(int x, int y) {        //x,y neue richtung
@@ -134,6 +138,7 @@ void Schlange::setzeRichtung(int x, int y) {        //x,y neue richtung
     if ((richtungX != -x || richtungX == 0) && (richtungY != -y || richtungY == 0)) {
         richtungX = x;
         richtungY = y;
+        richtungAndernErlaubt = false;  //nachdem eine gültige eingabe getätigt wurde wird die eingabe gesperrt bis die Schlange im nächsten Feld ist
     }
 }
 
@@ -206,44 +211,6 @@ void Steuerung::kollisionMitWand(int kopfX, int kopfY) {
     }
 }
 
-bool Steuerung::bewegenErlaubt(int richtung) {
-    //hoch=0,runter=1, links=2, rechts=3
-    //position des Kopfes holen und in ein automatische erstellter vektor
-    auto erstesElement = schlange->gibSegmente().front(); 
-    int x1, y1, z1;
-    // einzelnen Elemente eines tuple auf separate Variablen zu verteilen, anstatt sie manuell mit get<index>(...) aus dem Tupel zu extrahieren.
-    tie(x1, y1, z1) = erstesElement; //extrahiert die Werte aus dem tuple
-    std::cout << "x: " << x1 << ", y: " << y1 << ", z: " << z1 << std::endl;
-
-   auto zweitesElement = schlange->gibSegmente()[1];  // Zugriff auf das zweite Element
-   int x2, y2, z2;
-   tie(x2, y2, z2) = zweitesElement;
-
-    //std::cout << "x2: " << x2 << ", y2: " << y2 << ", z2: " << z2 << std::endl;
-
-    if (x1==(x2-1)&&y1==y2) {        //zweites element ist rechts von kopf||gleiche Zeile
-        if (richtung==3) {  //verboten nach rechts zu gehen
-            return false;
-        }
-    }
-    if (x1 == (x2 + 1) && y1 == y2) {  //zweites element ist links von Kopf||beide auf gleiche Zeile
-        if (richtung == 2) {    //verboten nach links zu gehen
-            return false;
-        }
-    }
-    if (x1 == x2 && y1 == (y2 - 1)) {// gleiche Spalte und Kopf ist über zweitem Element
-        if (richtung==1) {    //verboten anch unten zu gehen
-            return false;
-        }
-     }
-    if (x1 == x2 && y1 == (y2 + 1)) {
-        if (richtung == 0) {
-            return false;
-        }
-    }
-    return true;
-}
-
 void Steuerung::kollisionMitSichSelbst(int kopfX, int kopfY) {
     const vector<tuple<int, int, int>>& segmente = schlange->gibSegmente();
     // Der Kopf ist normalerweise das erste Segment
@@ -311,6 +278,9 @@ int Steuerung::gibApfelPosX() {
 int Steuerung::gibApfelPosY() {
     return apfel->gibPosY();
 }
+bool Steuerung::gibRichtungAndernErlaubt() {
+    return schlange->gibRichtungAndernErlaubt();
+}
 void Steuerung::apfelPlatzieren() { //von Apfel die neue position des Apfels in kästchen gespeichert
     array<int, 2> position = apfel->randomApfelPos();
     kaestchen[position[0]][position[1]].setzeFarbe(Color::RED);
@@ -329,10 +299,16 @@ private:
     Steuerung* steuerung;
     double last_move_time;
     Font font; // Zum Darstellen von Text
+    Image neustartKnopfImage;   //button 1
+    double buttonX1, buttonY1, buttonWidth1, buttonHeight1;
 public:
     Oberflaeche() : Window(800, 600), font(30), last_move_time(0) {
+
+
         set_caption("Snake");
         steuerung = new Steuerung();
+
+        
     }
 
     ~Oberflaeche() {
@@ -341,7 +317,7 @@ public:
 
     void update() override {
         double current_time = milliseconds() / 1000.0;
-        if (current_time - last_move_time >= steuerung->gibaktualisierungsZeit()) {  // Bewegung alle 0,5 Sekunden
+        if (current_time - last_move_time >= steuerung->gibaktualisierungsZeit()) {  // Bewegung wenn der milliseconds auf den wert der auf dem Wert der aktualisierungsZeit ist
             steuerung->gibSchlange()->bewegen();
             last_move_time = current_time;
         }
@@ -428,32 +404,27 @@ public:
     void button_down(Button btn) override {
         switch (btn) {
         case KB_W:  // nach oben
-            if (steuerung->bewegenErlaubt(0) == true) {      //hoch=0
+            if (steuerung->gibRichtungAndernErlaubt() == true) {     
                 steuerung->gibSchlange()->setzeRichtung(-1, 0);
             }
             break;
         case KB_S:  // nach unten
-            //runter 1
-            if (steuerung->bewegenErlaubt(0) == true) {
+            if (steuerung->gibRichtungAndernErlaubt() == true) {
                 steuerung->gibSchlange()->setzeRichtung(1, 0);
             }
             break;
         case KB_A:  // nach links
-            //links=2
-            if (steuerung->bewegenErlaubt(0) == true) {
+            if (steuerung->gibRichtungAndernErlaubt() == true) {
                 steuerung->gibSchlange()->setzeRichtung(0, -1);
             }
             break;
         case KB_D:  // nach rechts
-            //rechts=3
-            if (steuerung->bewegenErlaubt(0) == true) {
+            if (steuerung->gibRichtungAndernErlaubt() == true) {
                 steuerung->gibSchlange()->setzeRichtung(0, 1);
             }
             break;
         case KB_P:
-            if (steuerung->bewegenErlaubt(0) == true) {
-                cout << "Pause";
-            }
+            cout << "Pause";
             break;
         default:
             break;
