@@ -269,9 +269,36 @@ void Steuerung::verloren() {
     spielstand = 2;
 
 }
+
 void Steuerung::neustart() {
-    cout << "hier kommt der neustart";
+    // Spielfeld zurücksetzen
+    for (int i = 0; i < rasterHoehe; ++i) {
+        for (int j = 0; j < rasterBreite; ++j) {
+            kaestchen[i][j].setzeFarbe(Color::WHITE);
+
+            // Setze die Ränder des Spielfelds auf grau
+            if (i == 0 || j == 0 || i == rasterHoehe - 1 || j == rasterBreite - 1) {
+                kaestchen[i][j].setzeFarbe(Color::GRAY);
+            }
+        }
+    }
+
+    // Schlange zurücksetzen
+    delete schlange; // Alte Schlange löschen
+    schlange = new Schlange(this); // Neue Schlange initialisieren
+
+    // Apfel neu platzieren
+    apfelEntfernen();  // Apfel vom alten Ort entfernen
+    apfelPlatzieren(); // Apfel an eine neue zufällige Position setzen
+
+    // Spielstand auf "spielen" setzen
+    spielstand = 1;
+
+    // Aktualisierungszeit zurücksetzen (langsamer Start)
+    setzteAktualisierungsZeit(0.75); // Längere Zeit für den Start, damit Spieler die Schlange steuern kann
 }
+
+
 
 Kaestchen& Steuerung::gibKaestchen(int i, int j) {
     return kaestchen[i][j];
@@ -349,7 +376,8 @@ public:
 
             // Überprüfen, ob die Maus innerhalb des Rechtecks geklickt wurde
             if (mausX >= rechteckObenLinksX && mausX <= rechteckUntenRechtsX &&
-                mausY >= rechteckObenLinksY && mausY <= rechteckUntenRechtsY) {
+                mausY >= rechteckObenLinksY && mausY <= rechteckUntenRechtsY&&
+                steuerung->gibSpielstand() == 2) {
                 cout << "Auf das Rechteck wurde geklickt!" << std::endl;
                 steuerung->neustart();
             }
