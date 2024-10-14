@@ -171,6 +171,7 @@
     <ClCompile Include="Beispielprojekt.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="neustartKnopf.png" />
     <Image Include="rakete.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

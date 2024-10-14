@@ -98,6 +98,7 @@ public:
     void kollisionMitWand(int kopfX, int kopfY);
     void kollisionMitSichSelbst(int kopfX, int kopfY);
     void verloren();
+    void neustart();
     int gibSpielstand() { return spielstand; }
     double gibaktualisierungsZeit() { return aktualisierungsZeit; }
     int gibGroessseSchlange() { return schlange->gibGroesse(); }
@@ -268,6 +269,9 @@ void Steuerung::verloren() {
     spielstand = 2;
 
 }
+void Steuerung::neustart() {
+    cout << "hier kommt der neustart";
+}
 
 Kaestchen& Steuerung::gibKaestchen(int i, int j) {
     return kaestchen[i][j];
@@ -299,24 +303,57 @@ private:
     Steuerung* steuerung;
     double last_move_time;
     Font font; // Zum Darstellen von Text
-    Image neustartKnopfImage;   //button 1
-    double buttonX1, buttonY1, buttonWidth1, buttonHeight1;
+    Image* neustartKnopf;   //Zeiger auf das Neustartknopf-Bild
+    string nachricht = "Verloren \nGröße: 12" ;
+    double skalierungNeustart = 0.15;
+    //Breite der Nachricht
+    double textBreite;
+    double textHoehe;
+    // Positionierung des Textes in der Mitte des Bildschirms
+    double x;
+    double y;
 public:
     Oberflaeche() : Window(800, 600), font(30), last_move_time(0) {
-
+        neustartKnopf = new Image("neustartKnopf.png");// Zeiger auf das Neustartknopf-Bild
 
         set_caption("Snake");
         steuerung = new Steuerung();
 
-        
+        //Höhe und breite berechnen der Nachricht
+        textBreite = font.text_width(nachricht);
+        textHoehe = font.height() * 2;
+
+        // Positionierung des Textes in der Mitte des Bildschirms
+        x = 400 - textBreite / 2;
+        y = 300 - textHoehe / 2;
     }
 
     ~Oberflaeche() {
         delete steuerung;
+        delete neustartKnopf;  // Speicher für das Bild freigeben
     }
+
 
     void update() override {
         double current_time = milliseconds() / 1000.0;
+
+        if (Gosu::Input::down(Gosu::MS_LEFT)) {  // Linksklick auf neustart Feld
+            int mausX = input().mouse_x();
+            int mausY = input().mouse_y();
+
+            // Berechne die Koordinaten und Dimensionen des Rechtecks
+            int rechteckObenLinksX = x - 12;
+            int rechteckObenLinksY = y - 12;
+            int rechteckUntenRechtsX = x + textBreite + 12;
+            int rechteckUntenRechtsY = y + textHoehe + 22 + (neustartKnopf->height() * skalierungNeustart);
+
+            // Überprüfen, ob die Maus innerhalb des Rechtecks geklickt wurde
+            if (mausX >= rechteckObenLinksX && mausX <= rechteckUntenRechtsX &&
+                mausY >= rechteckObenLinksY && mausY <= rechteckUntenRechtsY) {
+                cout << "Auf das Rechteck wurde geklickt!" << std::endl;
+                steuerung->neustart();
+            }
+        }
         if (current_time - last_move_time >= steuerung->gibaktualisierungsZeit()) {  // Bewegung wenn der milliseconds auf den wert der auf dem Wert der aktualisierungsZeit ist
             steuerung->gibSchlange()->bewegen();
             last_move_time = current_time;
@@ -365,18 +402,12 @@ public:
         }
         if (steuerung->gibSpielstand() == 2) {//verloren
             // Berechnung der Textgröße
-            std::string nachricht = "Verloren \nGröße: " + std::to_string(steuerung->gibGroessseSchlange());
-
-            double textBreite = font.text_width(nachricht);
-            double textHoehe = font.height()*2;
-
-            // Positionierung des Textes in der Mitte des Bildschirms
-            double x = 400 - textBreite / 2;
-            double y = 300 - textHoehe / 2;
+            nachricht = "Verloren \nGröße: " + to_string(steuerung->gibGroessseSchlange());
 
             // Zeichne einen Kasten als Hintergrund für den Text
             Color kastenFarbe = Color::BLACK;
             Color randFarbe = Color::GRAY;
+            
 
             // Hintergrundrechteck zeichnen
             Graphics::draw_quad(
@@ -386,22 +417,22 @@ public:
                 x - 10, y + textHoehe + 10, kastenFarbe,  // Unten links
                 0  // Z-Ebene des Hintergrunds (unter dem Text)
             );
-
-            // Zeichne einen weißen Rand um den Kasten (optional)
+            // Zeichne einen weißen Rand um den Kasten
             Graphics::draw_quad(
                 x - 12, y - 12, randFarbe,          // Oben links
                 x + textBreite + 12, y - 12, randFarbe,  // Oben rechts
-                x + textBreite + 12, y + textHoehe + 12, randFarbe,  // Unten rechts
-                x - 12, y + textHoehe + 12, randFarbe,  // Unten links
+                x + textBreite + 12, y + textHoehe + 22+ (neustartKnopf->height()*skalierungNeustart), randFarbe,  // Unten rechts
+                x - 12, y + textHoehe + 22+ (neustartKnopf->height()* skalierungNeustart), randFarbe,  // Unten links
                 1  // Z-Ebene des Randes (über dem Hintergrund, aber unter dem Text)
             );
 
             // Zeichne den Text über den Kasten
             font.draw_text(nachricht, x, y, 2, 1.0, 1.0, Color::RED);
+            neustartKnopf->draw(x+20, y+75, 1, skalierungNeustart, skalierungNeustart);  // Position (x, y), Z-Ebene 1, Skalierung 0.5x
         }
     }
 
-    void button_down(Button btn) override {
+    void button_down(Button btn) override { //Knopfdruck zum steuern der schlange
         switch (btn) {
         case KB_W:  // nach oben
             if (steuerung->gibRichtungAndernErlaubt() == true) {     
