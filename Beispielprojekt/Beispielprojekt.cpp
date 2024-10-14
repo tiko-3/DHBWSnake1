@@ -295,9 +295,8 @@ void Steuerung::neustart() {
     spielstand = 1;
 
     // Aktualisierungszeit zurücksetzen (langsamer Start)
-    setzteAktualisierungsZeit(0.75); // Längere Zeit für den Start, damit Spieler die Schlange steuern kann
+    setzteAktualisierungsZeit(0.5); // Längere Zeit für den Start, damit Spieler die Schlange steuern kann
 }
-
 
 
 Kaestchen& Steuerung::gibKaestchen(int i, int j) {
