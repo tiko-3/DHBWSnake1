@@ -29,5 +29,8 @@
     <Image Include="schlangenKopf.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="apple.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

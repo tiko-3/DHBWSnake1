@@ -314,6 +314,8 @@ bool Steuerung::gibRichtungAndernErlaubt() {
 void Steuerung::apfelPlatzieren() { //von Apfel die neue position des Apfels in kästchen gespeichert
     array<int, 2> position = apfel->randomApfelPos();
     kaestchen[position[0]][position[1]].setzeFarbe(Color::RED);
+    
+
 }
 
 void Steuerung::apfelGegessen(int posX, int posY) {
@@ -331,6 +333,7 @@ private:
     Font font; // Zum Darstellen von Text
     Image* neustartKnopf;   //Zeiger auf das Neustartknopf-Bild
     Image* snakekopf;
+    Image* apple;
     string nachricht = "Verloren \nGröße: 12" ;
     double skalierungNeustart = 0.15;
     //Breite der Nachricht
@@ -344,6 +347,7 @@ public:
     Oberflaeche() : Window(800, 600), font(30), last_move_time(0), winkel(0.0) {
         neustartKnopf = new Image("neustartKnopf.png");// Zeiger auf das Neustartknopf-Bild
         snakekopf = new Image("schlangenkopf.png");
+        apple = new Image("apple.png");
 
         set_caption("Snake");
         steuerung = new Steuerung();
@@ -361,6 +365,7 @@ public:
         delete steuerung;
         delete neustartKnopf;  // Speicher für das Bild freigeben
         delete snakekopf;
+        delete apple;
     }
 
 
@@ -392,6 +397,8 @@ public:
     }
 
     void draw() override {
+
+        
 
         
 
@@ -442,6 +449,11 @@ public:
                             break;
                         }
                     }
+                    if (Color::RED == farbe) {
+                        farbe = Color::WHITE;
+                        apple->draw(x-2, y-4, 1, 0.15, 0.15);  // Apfel-Bild zeichnen
+                    }
+
 
                     Graphics::draw_quad(
                         x, y, farbe,
@@ -455,8 +467,15 @@ public:
                     Graphics::draw_line(x, y + 50, Color::BLACK, x + 50, y + 50, Color::BLACK, 0);
                     Graphics::draw_line(x, y, Color::BLACK, x, y + 50, Color::BLACK, 0);
                     Graphics::draw_line(x + 50, y, Color::BLACK, x + 50, y + 50, Color::BLACK, 0);
+
+
+                    
                 }
+            
             }
+
+            
+            
         }
         if (steuerung->gibSpielstand() == 2) {//verloren
             // Berechnung der Textgröße

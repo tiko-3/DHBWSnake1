@@ -171,6 +171,7 @@
     <ClCompile Include="Beispielprojekt.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="apple.png" />
     <Image Include="neustartKnopf.png" />
     <Image Include="rakete.png" />
     <Image Include="schlangenKopf.png" />
