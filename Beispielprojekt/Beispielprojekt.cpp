@@ -102,7 +102,7 @@ public:
     int gibSpielstand() { return spielstand; }
     double gibaktualisierungsZeit() { return aktualisierungsZeit; }
     int gibGroessseSchlange() { return schlange->gibGroesse(); }
-    void setzteAktualisierungsZeit(int aktualisierungsZeit) { this->aktualisierungsZeit = aktualisierungsZeit; }
+    void setzteAktualisierungsZeit(double aktualisierungsZeit) { this->aktualisierungsZeit = aktualisierungsZeit; }
     Schlange* gibSchlange() { return schlange; }
 };
 
