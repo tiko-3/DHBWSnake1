@@ -331,6 +331,7 @@ private:
     double last_move_time;
     Font font; // Zum Darstellen von Text
     Image* neustartKnopf;   //Zeiger auf das Neustartknopf-Bild
+    Image* snakekopf;
     string nachricht = "Verloren \nGröße: 12" ;
     double skalierungNeustart = 0.15;
     //Breite der Nachricht
@@ -339,9 +340,11 @@ private:
     // Positionierung des Textes in der Mitte des Bildschirms
     double x;
     double y;
+    double winkel;
 public:
-    Oberflaeche() : Window(800, 600), font(30), last_move_time(0) {
+    Oberflaeche() : Window(800, 600), font(30), last_move_time(0), winkel(0.0) {
         neustartKnopf = new Image("neustartKnopf.png");// Zeiger auf das Neustartknopf-Bild
+        snakekopf = new Image("schlangenkopf.png");
 
         set_caption("Snake");
         steuerung = new Steuerung();
@@ -358,6 +361,7 @@ public:
     ~Oberflaeche() {
         delete steuerung;
         delete neustartKnopf;  // Speicher für das Bild freigeben
+        delete snakekopf;
     }
 
 
@@ -390,6 +394,7 @@ public:
 
     void draw() override {
 
+        
 
         if (steuerung->gibSpielstand() == 0) {
 
@@ -409,6 +414,32 @@ public:
                     for (const auto& segment : segmente) {
                         if (get<1>(segment) == i && get<2>(segment) == j) {
                             farbe = Color::GREEN;
+                            if (get<0>(segment) == 0) {  // Kopfsegment an 0. Stelle wird geprüft
+                                farbe = Color::WHITE;
+                                // Abrufen der Richtung
+                                int richtungX = steuerung->gibSchlange()->gibRichtungX();
+                                int richtungY = steuerung->gibSchlange()->gibRichtungY();
+
+                                // Winkel bestimmen basierend auf der Richtung
+                                double drehwinkel = 0.0;
+                                if (richtungX == -1 && richtungY == 0) {  // nach oben
+                                    drehwinkel = 180.0;
+                                    
+                                }
+                                else if (richtungX == 1 && richtungY == 0) {  // nach unten
+                                    drehwinkel = 0.0;
+                                }
+                                else if (richtungX == 0 && richtungY == -1) {  // nach links
+                                    drehwinkel = 90.0;
+                                }
+                                else if (richtungX == 0 && richtungY == 1) {  // nach rechts
+                                    
+                                    drehwinkel = 270.0;
+                                }
+
+                                // Kopf der Schlange rotieren und zeichnen
+                                snakekopf->draw_rot(k.gibPosX() + 25, k.gibPosY() + 25, 1, drehwinkel, 0.5, 0.5,0.15,0.15);
+                            }
                             break;
                         }
                     }

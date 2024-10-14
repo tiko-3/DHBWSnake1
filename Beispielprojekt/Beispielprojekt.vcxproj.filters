@@ -23,5 +23,11 @@
     <Image Include="rakete.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="neustartKnopf.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="schlangenKopf.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
