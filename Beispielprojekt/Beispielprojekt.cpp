@@ -79,6 +79,7 @@ private:
     const int kaestchenGroesse = 50;
     double aktualisierungsZeit = 0.5;
     int spielstand = 1;     //0=start, 1=spielen, 2=verloren
+    int highscore = 0;
 
     Kaestchen kaestchen[10][10];
     Apfel* apfel;
@@ -103,6 +104,7 @@ public:
     double gibaktualisierungsZeit() { return aktualisierungsZeit; }
     int gibGroessseSchlange() { return schlange->gibGroesse(); }
     void setzteAktualisierungsZeit(double aktualisierungsZeit) { this->aktualisierungsZeit = aktualisierungsZeit; }
+    int gibHighscore() { return highscore; }
     Schlange* gibSchlange() { return schlange; }
 };
 
@@ -267,6 +269,9 @@ Steuerung::~Steuerung() {
 void Steuerung::verloren() {
     setzteAktualisierungsZeit(10000); //10 minuten 
     spielstand = 2;
+    if ((schlange->gibGroesse()+1) > highscore) {
+        highscore = schlange->gibGroesse();
+    }
 
 }
 
@@ -334,7 +339,7 @@ private:
     Image* neustartKnopf;   //Zeiger auf das Neustartknopf-Bild
     Image* snakekopf;
     Image* apple;
-    string nachricht = "Verloren \nGröße: 12" ;
+    string nachricht = "Verloren \nGröße: 12 \nHighscore: 00" ;
     double skalierungNeustart = 0.15;
     //Breite der Nachricht
     double textBreite;
@@ -380,13 +385,12 @@ public:
             int rechteckObenLinksX = x - 12;
             int rechteckObenLinksY = y - 12;
             int rechteckUntenRechtsX = x + textBreite + 12;
-            int rechteckUntenRechtsY = y + textHoehe + 22 + (neustartKnopf->height() * skalierungNeustart);
+            int rechteckUntenRechtsY = y + textHoehe + 40 + (neustartKnopf->height() * skalierungNeustart);
 
             // Überprüfen, ob die Maus innerhalb des Rechtecks geklickt wurde
             if (mausX >= rechteckObenLinksX && mausX <= rechteckUntenRechtsX &&
                 mausY >= rechteckObenLinksY && mausY <= rechteckUntenRechtsY&&
                 steuerung->gibSpielstand() == 2) {
-                cout << "Auf das Rechteck wurde geklickt!" << std::endl;
                 steuerung->neustart();
             }
         }
@@ -397,11 +401,6 @@ public:
     }
 
     void draw() override {
-
-        
-
-        
-
         if (steuerung->gibSpielstand() == 0) {
 
         }
@@ -467,19 +466,13 @@ public:
                     Graphics::draw_line(x, y + 50, Color::BLACK, x + 50, y + 50, Color::BLACK, 0);
                     Graphics::draw_line(x, y, Color::BLACK, x, y + 50, Color::BLACK, 0);
                     Graphics::draw_line(x + 50, y, Color::BLACK, x + 50, y + 50, Color::BLACK, 0);
-
-
-                    
                 }
             
-            }
-
-            
-            
+            }   
         }
         if (steuerung->gibSpielstand() == 2) {//verloren
             // Berechnung der Textgröße
-            nachricht = "Verloren \nGröße: " + to_string(steuerung->gibGroessseSchlange());
+            nachricht = "Verloren \nGröße: " + to_string(steuerung->gibGroessseSchlange()) + "\nHighscore: " + to_string(steuerung->gibHighscore());
 
             // Zeichne einen Kasten als Hintergrund für den Text
             Color kastenFarbe = Color::BLACK;
@@ -498,14 +491,14 @@ public:
             Graphics::draw_quad(
                 x - 12, y - 12, randFarbe,          // Oben links
                 x + textBreite + 12, y - 12, randFarbe,  // Oben rechts
-                x + textBreite + 12, y + textHoehe + 22+ (neustartKnopf->height()*skalierungNeustart), randFarbe,  // Unten rechts
-                x - 12, y + textHoehe + 22+ (neustartKnopf->height()* skalierungNeustart), randFarbe,  // Unten links
+                x + textBreite + 12, y + textHoehe + 40+ (neustartKnopf->height()*skalierungNeustart), randFarbe,  // Unten rechts
+                x - 12, y + textHoehe + 40+ (neustartKnopf->height()* skalierungNeustart), randFarbe,  // Unten links
                 1  // Z-Ebene des Randes (über dem Hintergrund, aber unter dem Text)
             );
 
             // Zeichne den Text über den Kasten
             font.draw_text(nachricht, x, y, 2, 1.0, 1.0, Color::RED);
-            neustartKnopf->draw(x+20, y+75, 1, skalierungNeustart, skalierungNeustart);  // Position (x, y), Z-Ebene 1, Skalierung 0.5x
+            neustartKnopf->draw(x+20, y+95, 1, skalierungNeustart, skalierungNeustart);  // Position (x, y), Z-Ebene 1, Skalierung 0.5x
         }
     }
 
