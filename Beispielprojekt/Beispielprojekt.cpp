@@ -78,7 +78,7 @@ private:
     const int rasterHoehe = 10;
     const int kaestchenGroesse = 50;
     double aktualisierungsZeit = 0.5;
-    int spielstand = 1;     //0=start, 1=spielen, 2=verloren
+    int spielstand = 1;     //0=start, 1=spielen, 2=verloren, 3=pause
     int highscore = 0;
 
     Kaestchen kaestchen[10][10];
@@ -101,6 +101,7 @@ public:
     void verloren();
     void neustart();
     int gibSpielstand() { return spielstand; }
+    void setzteSpielstand(int spielstand) { this->spielstand = spielstand; }
     double gibaktualisierungsZeit() { return aktualisierungsZeit; }
     int gibGroessseSchlange() { return schlange->gibGroesse(); }
     void setzteAktualisierungsZeit(double aktualisierungsZeit) { this->aktualisierungsZeit = aktualisierungsZeit; }
@@ -123,8 +124,7 @@ void Schlange::bewegen() {
 
     if (isstApfel(steuerung->gibApfelPosX(), steuerung->gibApfelPosY())) {  //ob der Apfel gegessen wurde
         steuerung->apfelGegessen(neuerKopfX, neuerKopfY);
-    }
-    else {
+    }else {
         segmente.pop_back();
     }
     steuerung->kollisionMitWand(neuerKopfX, neuerKopfY);
@@ -191,7 +191,6 @@ array<int, 2> Apfel::randomApfelPos() {
             menge++;  // möglicherweise eine Menge von Äpfeln, die du zählst?
         }
     }
-
     return rueckgabe;
 }
 
@@ -273,7 +272,6 @@ void Steuerung::verloren() {
     if ((schlange->gibGroesse() + 1) > highscore) {
         highscore = schlange->gibGroesse();
     }
-
 }
 
 void Steuerung::neustart() {
@@ -349,11 +347,13 @@ private:
     double x;
     double y;
     double winkel;
+    Song* kleineTrinkpause;  // Zeiger auf den Song
 public:
     Oberflaeche() : Window(800, 600), font(30), last_move_time(0), winkel(0.0) {
         neustartKnopf = new Image("neustartKnopf.png");// Zeiger auf das Neustartknopf-Bild
         snakekopf = new Image("schlangenkopf.png");
         apple = new Image("apple.png");
+        Song* kleineTrinkpause;  // Zeiger auf den Song
 
         set_caption("Snake");
         steuerung = new Steuerung();
@@ -372,6 +372,7 @@ public:
         delete neustartKnopf;  // Speicher für das Bild freigeben
         delete snakekopf;
         delete apple;
+        delete kleineTrinkpause;
     }
 
 
@@ -406,7 +407,7 @@ public:
 
         }
 
-        if (steuerung->gibSpielstand() == 1 || steuerung->gibSpielstand() == 2) {
+        if (steuerung->gibSpielstand() == 1 || steuerung->gibSpielstand() == 2|| steuerung->gibSpielstand() == 3) {
             int max = steuerung->gibGroesseFeld();
             for (int i = 0; i < max; ++i) {
                 for (int j = 0; j < max; ++j) {
@@ -501,6 +502,9 @@ public:
             font.draw_text(nachricht, x, y, 2, 1.0, 1.0, Color::RED);
             neustartKnopf->draw(x + 20, y + 95, 1, skalierungNeustart, skalierungNeustart);  // Position (x, y), Z-Ebene 1, Skalierung 0.5x
         }
+        if (steuerung->gibSpielstand() == 3) {  //pause
+ 
+        }
     }
 
     void button_down(Button btn) override { //Knopfdruck zum steuern der schlange
@@ -525,14 +529,25 @@ public:
                 steuerung->gibSchlange()->setzeRichtung(0, 1);
             }
             break;
-        case KB_P:
-            cout << "Pause";
+        case KB_ESCAPE:
+                // Lade die MP3-Datei
+            kleineTrinkpause = new Gosu::Song("kleineTrinkpause.wav");
+
+            if (steuerung->gibSpielstand() != 3) {
+                steuerung->setzteSpielstand(3);
+                kleineTrinkpause->play(true);  // `true` bedeutet, dass die Datei im Loop abgespielt wird
+                kleineTrinkpause->play(false);
+                steuerung->setzteAktualisierungsZeit(1000000);
+            }
+            else {
+                steuerung->setzteSpielstand(1);
+                steuerung->setzteAktualisierungsZeit(0.5);
+            }
             break;
         default:
             break;
         }
     }
-
 };
 
 int main() {
