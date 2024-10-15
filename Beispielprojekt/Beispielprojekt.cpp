@@ -9,8 +9,6 @@
 #include <tuple>
 #include <string>
 
-//gewonnen fehlt
-
 using namespace std;
 using namespace Gosu;
 
@@ -78,7 +76,8 @@ private:
     const int rasterBreite = 10;
     const int rasterHoehe = 10;
     const int kaestchenGroesse = 50;
-    double aktualisierungsZeit = 0.5;
+    double standardGeschwindigkeit = 0.45;
+    double aktualisierungsZeit = 0.45;
     int spielstand = 1;     //0=start, 1=spielen, 2=verloren, 3=pause
     int highscore = 0;
 
@@ -107,6 +106,7 @@ public:
     double gibaktualisierungsZeit() { return aktualisierungsZeit; }
     int gibGroessseSchlange() { return schlange->gibGroesse(); }
     void setzteAktualisierungsZeit(double aktualisierungsZeit) { this->aktualisierungsZeit = aktualisierungsZeit; }
+    double gibtStandardGeschwindigkeit() { return standardGeschwindigkeit; }
     int gibHighscore() { return highscore; }
     Schlange* gibSchlange() { return schlange; }
     
@@ -202,9 +202,6 @@ void Steuerung::apfelEntfernen() {
     
     snakeEating = new Gosu::Sample("snakeEating.wav");
     snakeEating->play();
-    cout << "sound ausgegeben";
-    
-
 }
 
 void Steuerung::kollisionMitWand(int kopfX, int kopfY) {
@@ -281,7 +278,6 @@ void Steuerung::verloren() {
     if ((schlange->gibGroesse() + 1) > highscore) {
         highscore = schlange->gibGroesse();
     }
-
 }
 
 void Steuerung::neustart() {
@@ -309,7 +305,7 @@ void Steuerung::neustart() {
     spielstand = 1;
 
     // Aktualisierungszeit zurücksetzen (langsamer Start)
-    setzteAktualisierungsZeit(0.5); // Längere Zeit für den Start, damit Spieler die Schlange steuern kann
+    setzteAktualisierungsZeit(standardGeschwindigkeit); // Längere Zeit für den Start, damit Spieler die Schlange steuern kann
 }
 
 
@@ -382,6 +378,7 @@ public:
         delete snakekopf;
         delete apple;
         delete kleineTrinkpause;
+
     }
 
 
@@ -463,7 +460,7 @@ public:
                         farbe = Color::WHITE;
                         apple->draw(x - 2, y - 4, 1, 0.15, 0.15);  // Apfel-Bild zeichnen
                     }
-
+                    
 
                     Graphics::draw_quad(
                         x, y, farbe,
@@ -550,7 +547,7 @@ public:
             }
             else {
                 steuerung->setzteSpielstand(1);
-                steuerung->setzteAktualisierungsZeit(0.5);
+                steuerung->setzteAktualisierungsZeit(steuerung->gibtStandardGeschwindigkeit());
             }
             break;
         default:
