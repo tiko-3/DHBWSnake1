@@ -74,6 +74,7 @@ public:
 
 class Steuerung {
 private:
+    
     const int rasterBreite = 10;
     const int rasterHoehe = 10;
     const int kaestchenGroesse = 50;
@@ -84,6 +85,7 @@ private:
     Kaestchen kaestchen[10][10];
     Apfel* apfel;
     Schlange* schlange;
+    Sample* snakeEating;
 
 public:
     Steuerung();
@@ -107,6 +109,7 @@ public:
     void setzteAktualisierungsZeit(double aktualisierungsZeit) { this->aktualisierungsZeit = aktualisierungsZeit; }
     int gibHighscore() { return highscore; }
     Schlange* gibSchlange() { return schlange; }
+    
 };
 
 // Implementierung der Schlange
@@ -196,6 +199,11 @@ array<int, 2> Apfel::randomApfelPos() {
 
 void Steuerung::apfelEntfernen() {
     kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Color::WHITE);
+    
+    snakeEating = new Gosu::Sample("snakeEating.wav");
+    snakeEating->play();
+    cout << "sound ausgegeben";
+    
 
 }
 
@@ -264,6 +272,7 @@ Steuerung::Steuerung() {
 Steuerung::~Steuerung() {
     delete apfel;
     delete schlange;
+    delete snakeEating;
 }
 
 void Steuerung::verloren() {
@@ -272,6 +281,7 @@ void Steuerung::verloren() {
     if ((schlange->gibGroesse() + 1) > highscore) {
         highscore = schlange->gibGroesse();
     }
+
 }
 
 void Steuerung::neustart() {
@@ -354,7 +364,6 @@ public:
         snakekopf = new Image("schlangenkopf.png");
         apple = new Image("apple.png");
         Song* kleineTrinkpause;  // Zeiger auf den Song
-
         set_caption("Snake");
         steuerung = new Steuerung();
 
