@@ -74,6 +74,7 @@ public:
 
 class Steuerung {
 private:
+    
     const int rasterBreite = 10;
     const int rasterHoehe = 10;
     const int kaestchenGroesse = 50;
@@ -84,6 +85,7 @@ private:
     Kaestchen kaestchen[10][10];
     Apfel* apfel;
     Schlange* schlange;
+    Sample* snakeEating;
 
 public:
     Steuerung();
@@ -106,6 +108,7 @@ public:
     void setzteAktualisierungsZeit(double aktualisierungsZeit) { this->aktualisierungsZeit = aktualisierungsZeit; }
     int gibHighscore() { return highscore; }
     Schlange* gibSchlange() { return schlange; }
+    
 };
 
 // Implementierung der Schlange
@@ -197,6 +200,11 @@ array<int, 2> Apfel::randomApfelPos() {
 
 void Steuerung::apfelEntfernen() {
     kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Color::WHITE);
+    
+    snakeEating = new Gosu::Sample("snakeEating.wav");
+    snakeEating->play();
+    cout << "sound ausgegeben";
+    
 
 }
 
@@ -265,6 +273,7 @@ Steuerung::Steuerung() {
 Steuerung::~Steuerung() {
     delete apfel;
     delete schlange;
+    delete snakeEating;
 }
 
 void Steuerung::verloren() {
@@ -354,6 +363,7 @@ public:
         neustartKnopf = new Image("neustartKnopf.png");// Zeiger auf das Neustartknopf-Bild
         snakekopf = new Image("schlangenkopf.png");
         apple = new Image("apple.png");
+        
 
         set_caption("Snake");
         steuerung = new Steuerung();
@@ -372,6 +382,7 @@ public:
         delete neustartKnopf;  // Speicher für das Bild freigeben
         delete snakekopf;
         delete apple;
+        
     }
 
 
@@ -453,7 +464,7 @@ public:
                         farbe = Color::WHITE;
                         apple->draw(x - 2, y - 4, 1, 0.15, 0.15);  // Apfel-Bild zeichnen
                     }
-
+                    
 
                     Graphics::draw_quad(
                         x, y, farbe,
