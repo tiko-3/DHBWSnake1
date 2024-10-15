@@ -35,7 +35,7 @@ public:
     const vector<tuple<int, int, int>>& gibSegmente() const { return segmente; }
     int gibRichtungX() { return richtungX; }
     int gibRichtungY() { return richtungY; }
-    bool gibRichtungAndernErlaubt(){  return richtungAndernErlaubt;}
+    bool gibRichtungAndernErlaubt() { return richtungAndernErlaubt; }
     int gibGroesse() { return segmente.size(); }
 };
 
@@ -123,7 +123,8 @@ void Schlange::bewegen() {
 
     if (isstApfel(steuerung->gibApfelPosX(), steuerung->gibApfelPosY())) {  //ob der Apfel gegessen wurde
         steuerung->apfelGegessen(neuerKopfX, neuerKopfY);
-    }else {
+    }
+    else {
         segmente.pop_back();
     }
     steuerung->kollisionMitWand(neuerKopfX, neuerKopfY);
@@ -269,7 +270,7 @@ Steuerung::~Steuerung() {
 void Steuerung::verloren() {
     setzteAktualisierungsZeit(10000); //10 minuten 
     spielstand = 2;
-    if ((schlange->gibGroesse()+1) > highscore) {
+    if ((schlange->gibGroesse() + 1) > highscore) {
         highscore = schlange->gibGroesse();
     }
 
@@ -319,7 +320,7 @@ bool Steuerung::gibRichtungAndernErlaubt() {
 void Steuerung::apfelPlatzieren() { //von Apfel die neue position des Apfels in kästchen gespeichert
     array<int, 2> position = apfel->randomApfelPos();
     kaestchen[position[0]][position[1]].setzeFarbe(Color::RED);
-    
+
 
 }
 
@@ -339,7 +340,7 @@ private:
     Image* neustartKnopf;   //Zeiger auf das Neustartknopf-Bild
     Image* snakekopf;
     Image* apple;
-    string nachricht = "Verloren \nGröße: 12 \nHighscore: 00" ;
+    string nachricht = "Verloren \nGröße: 12 \nHighscore: 00";
     double skalierungNeustart = 0.15;
     //Breite der Nachricht
     double textBreite;
@@ -389,7 +390,7 @@ public:
 
             // Überprüfen, ob die Maus innerhalb des Rechtecks geklickt wurde
             if (mausX >= rechteckObenLinksX && mausX <= rechteckUntenRechtsX &&
-                mausY >= rechteckObenLinksY && mausY <= rechteckUntenRechtsY&&
+                mausY >= rechteckObenLinksY && mausY <= rechteckUntenRechtsY &&
                 steuerung->gibSpielstand() == 2) {
                 steuerung->neustart();
             }
@@ -429,7 +430,7 @@ public:
                                 double drehwinkel = 0.0;
                                 if (richtungX == -1 && richtungY == 0) {  // nach oben
                                     drehwinkel = 180.0;
-                                    
+
                                 }
                                 else if (richtungX == 1 && richtungY == 0) {  // nach unten
                                     drehwinkel = 0.0;
@@ -438,19 +439,19 @@ public:
                                     drehwinkel = 90.0;
                                 }
                                 else if (richtungX == 0 && richtungY == 1) {  // nach rechts
-                                    
+
                                     drehwinkel = 270.0;
                                 }
 
                                 // Kopf der Schlange rotieren und zeichnen
-                                snakekopf->draw_rot(k.gibPosX() + 25, k.gibPosY() + 25, 1, drehwinkel, 0.5, 0.5,0.15,0.15);
+                                snakekopf->draw_rot(k.gibPosX() + 25, k.gibPosY() + 25, 1, drehwinkel, 0.5, 0.5, 0.15, 0.15);
                             }
                             break;
                         }
                     }
                     if (Color::RED == farbe) {
                         farbe = Color::WHITE;
-                        apple->draw(x-2, y-4, 1, 0.15, 0.15);  // Apfel-Bild zeichnen
+                        apple->draw(x - 2, y - 4, 1, 0.15, 0.15);  // Apfel-Bild zeichnen
                     }
 
 
@@ -467,17 +468,17 @@ public:
                     Graphics::draw_line(x, y, Color::BLACK, x, y + 50, Color::BLACK, 0);
                     Graphics::draw_line(x + 50, y, Color::BLACK, x + 50, y + 50, Color::BLACK, 0);
                 }
-            
-            }   
+
+            }
         }
         if (steuerung->gibSpielstand() == 2) {//verloren
             // Berechnung der Textgröße
-            nachricht = "Verloren \nGröße: " + to_string(steuerung->gibGroessseSchlange()) + "\nHighscore: " + to_string(steuerung->gibHighscore());
+            nachricht = "Verloren \nGröße: " + to_string(steuerung->gibGroessseSchlange()) + "\nHighscore: " + to_string(steuerung->gibHighscore()+1);
 
             // Zeichne einen Kasten als Hintergrund für den Text
             Color kastenFarbe = Color::BLACK;
             Color randFarbe = Color::GRAY;
-            
+
 
             // Hintergrundrechteck zeichnen
             Graphics::draw_quad(
@@ -491,21 +492,21 @@ public:
             Graphics::draw_quad(
                 x - 12, y - 12, randFarbe,          // Oben links
                 x + textBreite + 12, y - 12, randFarbe,  // Oben rechts
-                x + textBreite + 12, y + textHoehe + 40+ (neustartKnopf->height()*skalierungNeustart), randFarbe,  // Unten rechts
-                x - 12, y + textHoehe + 40+ (neustartKnopf->height()* skalierungNeustart), randFarbe,  // Unten links
+                x + textBreite + 12, y + textHoehe + 40 + (neustartKnopf->height() * skalierungNeustart), randFarbe,  // Unten rechts
+                x - 12, y + textHoehe + 40 + (neustartKnopf->height() * skalierungNeustart), randFarbe,  // Unten links
                 1  // Z-Ebene des Randes (über dem Hintergrund, aber unter dem Text)
             );
 
             // Zeichne den Text über den Kasten
             font.draw_text(nachricht, x, y, 2, 1.0, 1.0, Color::RED);
-            neustartKnopf->draw(x+20, y+95, 1, skalierungNeustart, skalierungNeustart);  // Position (x, y), Z-Ebene 1, Skalierung 0.5x
+            neustartKnopf->draw(x + 20, y + 95, 1, skalierungNeustart, skalierungNeustart);  // Position (x, y), Z-Ebene 1, Skalierung 0.5x
         }
     }
 
     void button_down(Button btn) override { //Knopfdruck zum steuern der schlange
         switch (btn) {
         case KB_W:  // nach oben
-            if (steuerung->gibRichtungAndernErlaubt() == true) {     
+            if (steuerung->gibRichtungAndernErlaubt() == true) {
                 steuerung->gibSchlange()->setzeRichtung(-1, 0);
             }
             break;
