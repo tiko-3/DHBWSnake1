@@ -77,7 +77,7 @@ private:
     const int rasterHoehe = 10;
     const int kaestchenGroesse = 50;
     double standardGeschwindigkeit = 0.45;
-    double aktualisierungsZeit = 0.45;
+    double aktualisierungsZeit = 0.45;  //vorher 0.45
     int spielstand = 1;     //0=start, 1=spielen, 2=verloren, 3=pause
     int highscore = 0;
 
@@ -108,6 +108,7 @@ public:
     void setzteAktualisierungsZeit(double aktualisierungsZeit) { this->aktualisierungsZeit = aktualisierungsZeit; }
     double gibtStandardGeschwindigkeit() { return standardGeschwindigkeit; }
     int gibHighscore() { return highscore; }
+    int gibKaestchenGroesse() { return kaestchenGroesse; }
     Schlange* gibSchlange() { return schlange; }
     
 };
@@ -353,6 +354,7 @@ private:
     double x;
     double y;
     double winkel;
+    int kGroesse;
     Song* kleineTrinkpause;  // Zeiger auf den Song
 public:
     Oberflaeche() : Window(800, 600), font(30), last_move_time(0), winkel(0.0) {
@@ -362,6 +364,8 @@ public:
         Song* kleineTrinkpause;  // Zeiger auf den Song
         set_caption("Snake");
         steuerung = new Steuerung();
+
+        kGroesse = steuerung->gibKaestchenGroesse();
 
         //Höhe und breite berechnen der Nachricht
         textBreite = font.text_width(nachricht);
@@ -415,7 +419,7 @@ public:
 
         if (steuerung->gibSpielstand() == 1 || steuerung->gibSpielstand() == 2|| steuerung->gibSpielstand() == 3) {
             int max = steuerung->gibGroesseFeld();
-            for (int i = 0; i < max; ++i) {
+            for (int i = 0; i < max; ++i) { //zum holen der Kästchen
                 for (int j = 0; j < max; ++j) {
                     Kaestchen& k = steuerung->gibKaestchen(i, j);
                     int x = k.gibPosX();
@@ -464,16 +468,16 @@ public:
 
                     Graphics::draw_quad(
                         x, y, farbe,
-                        x + 50, y, farbe,
-                        x + 50, y + 50, farbe,
-                        x, y + 50, farbe,
+                        x + kGroesse, y, farbe,
+                        x + kGroesse, y + kGroesse, farbe,
+                        x, y + kGroesse, farbe,
                         0
                     );
 
-                    Graphics::draw_line(x, y, Color::BLACK, x + 50, y, Color::BLACK, 0);
-                    Graphics::draw_line(x, y + 50, Color::BLACK, x + 50, y + 50, Color::BLACK, 0);
-                    Graphics::draw_line(x, y, Color::BLACK, x, y + 50, Color::BLACK, 0);
-                    Graphics::draw_line(x + 50, y, Color::BLACK, x + 50, y + 50, Color::BLACK, 0);
+                    Graphics::draw_line(x, y, Color::BLACK, x + kGroesse, y, Color::BLACK, 0);
+                    Graphics::draw_line(x, y + kGroesse, Color::BLACK, x + kGroesse, y + kGroesse, Color::BLACK, 0);
+                    Graphics::draw_line(x, y, Color::BLACK, x, y + kGroesse, Color::BLACK, 0);
+                    Graphics::draw_line(x + kGroesse, y, Color::BLACK, x + kGroesse, y + kGroesse, Color::BLACK, 0);
                 }
 
             }
