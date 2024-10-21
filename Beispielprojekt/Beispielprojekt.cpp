@@ -12,7 +12,7 @@
 using namespace std;
 using namespace Gosu;
 
-class Steuerung;
+class Steuerung;        //timo
 
 class Schlange {
 private:
@@ -80,6 +80,7 @@ private:
     double aktualisierungsZeit = 0.45;  //vorher 0.45
     int spielstand = 1;     //0=start, 1=spielen, 2=verloren, 3=pause
     int highscore = 0;
+    Color todeszone = Color::BLACK; 
 
     Kaestchen kaestchen[10][10];
     Apfel* apfel;
@@ -113,13 +114,61 @@ public:
     
 };
 
+
+//Noah
+
 // Implementierung der Schlange
-Schlange::Schlange(Steuerung* steuerung) : steuerung(steuerung) {
+Schlange::Schlange(Steuerung* steuerung) : steuerung(steuerung) {   
     // Schlange startet auf Y-Koordinate 4
     segmente.push_back(make_tuple(0, 4, 4));  // Startposition in der Mitte des Rasters
     segmente.push_back(make_tuple(1, 3, 4));  // körper hinzufügen
     segmente.push_back(make_tuple(1, 2, 4));
     farbe = Color::GREEN;
+}
+
+Apfel::Apfel(Steuerung* steuerung) : steuerung(steuerung) {
+    srand(time(nullptr));
+}
+
+Steuerung::Steuerung() {
+    // Berechne den Offset, um das Spielfeld zu zentrieren
+    int spielfeldBreite = rasterBreite * kaestchenGroesse;
+    int spielfeldHoehe = rasterHoehe * kaestchenGroesse;
+
+    // Fenstergröße (angenommen, das Fenster ist 800x600, du musst dies anpassen, wenn es anders ist)
+    int fensterBreite = 800; // Beispiel: Breite des Fensters
+    int fensterHoehe = 600;  // Beispiel: Höhe des Fensters
+
+    // Offset zum Zentrieren des Spielfelds
+    int offsetX = (fensterBreite - spielfeldBreite) / 2;
+    int offsetY = (fensterHoehe - spielfeldHoehe) / 2;
+
+    // Initialisiere die Kästchen mit zentrierten Positionen
+    //links oben ist [0][0]
+    for (int i = 0; i < rasterHoehe; ++i) {
+        for (int j = 0; j < rasterBreite; ++j) {
+            // Position jedes Kästchens berechnen und den Offset hinzufügen
+            kaestchen[i][j].setzePosition(offsetX + j * kaestchenGroesse, offsetY + i * kaestchenGroesse);
+            kaestchen[i][j].setzeFarbe(Color::WHITE);
+
+            // Setze die Ränder des Spielfelds auf grau
+            if (i == 0 || j == 0 || i == rasterHoehe - 1 || j == rasterBreite - 1) {
+                kaestchen[i][j].setzeFarbe(todeszone);    
+            }
+        }
+    }
+    // Apfel und Schlange initialisieren
+    apfel = new Apfel(this);
+    schlange = new Schlange(this);
+
+    // Apfel platzieren
+    apfelPlatzieren();
+}
+
+Steuerung::~Steuerung() {
+    delete apfel;
+    delete schlange;
+    delete snakeEating;
 }
 
 void Schlange::bewegen() {
@@ -141,15 +190,7 @@ void Schlange::bewegen() {
     richtungAndernErlaubt = true;   //Tasteneingaben wieder erlauben
 }
 
-void Schlange::setzeRichtung(int x, int y) {        //x,y neue richtung
-    // Verhindert das Umdrehen auf sich selbst
-    if ((richtungX != -x || richtungX == 0) && (richtungY != -y || richtungY == 0)) {
-        richtungX = x;
-        richtungY = y;
-        richtungAndernErlaubt = false;  //nachdem eine gültige eingabe getätigt wurde wird die eingabe gesperrt bis die Schlange im nächsten Feld ist
-    }
-}
-
+//Timo
 bool Schlange::isstApfel(int apfelX, int apfelY) {
     int kopfX = get<1>(segmente.front());
     int kopfY = get<2>(segmente.front());
@@ -162,14 +203,23 @@ bool Schlange::isstApfel(int apfelX, int apfelY) {
     }
 }
 
-Apfel::Apfel(Steuerung* steuerung) : steuerung(steuerung) {
-    srand(time(nullptr));
+void Steuerung::apfelGegessen(int posX, int posY) {
+        apfel->apfelMengedec();//Apfel menge wird um eins verringert (wenn es mehrere Äpfel gibt)
+        apfelEntfernen();
+        apfelPlatzieren();
+}
+
+void Steuerung::apfelEntfernen() {
+    kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Color::WHITE);
+
+    snakeEating = new Gosu::Sample("snakeEating.wav");
+    snakeEating->play();
 }
 
 array<int, 2> Apfel::randomApfelPos() {
     int max = steuerung->gibGroesseFeld() - 2;//-2 weil bei -1 sind wir auf dem letzten max feld, weil wir bei 0 anfangen mit zählen
     bool belegt = true;
-    int randX = 4;  // Apfel startet auf der gleichen x-Koordinate wie die Schlange
+    int randX = 0;  // Apfel startet auf der gleichen x-Koordinate wie die Schlange
     int randY = 0;
     std::array<int, 2> rueckgabe = { 0, 0 };
 
@@ -198,13 +248,13 @@ array<int, 2> Apfel::randomApfelPos() {
     return rueckgabe;
 }
 
-void Steuerung::apfelEntfernen() {
-    kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Color::WHITE);
-    
-    snakeEating = new Gosu::Sample("snakeEating.wav");
-    snakeEating->play();
+void Steuerung::apfelPlatzieren() { //von Apfel die neue position des Apfels in kästchen gespeichert
+    array<int, 2> position = apfel->randomApfelPos();
+    kaestchen[position[0]][position[1]].setzeFarbe(Color::RED);
 }
 
+
+//Noah
 void Steuerung::kollisionMitWand(int kopfX, int kopfY) {
     if (kopfX == 0) { //raus oben
         verloren();
@@ -230,56 +280,23 @@ void Steuerung::kollisionMitSichSelbst(int kopfX, int kopfY) {
     }
 }
 
-Steuerung::Steuerung() {
-    // Berechne den Offset, um das Spielfeld zu zentrieren
-    int spielfeldBreite = rasterBreite * kaestchenGroesse;
-    int spielfeldHoehe = rasterHoehe * kaestchenGroesse;
-
-    // Fenstergröße (angenommen, das Fenster ist 800x600, du musst dies anpassen, wenn es anders ist)
-    int fensterBreite = 800; // Beispiel: Breite des Fensters
-    int fensterHoehe = 600;  // Beispiel: Höhe des Fensters
-
-    // Offset zum Zentrieren des Spielfelds
-    int offsetX = (fensterBreite - spielfeldBreite) / 2;
-    int offsetY = (fensterHoehe - spielfeldHoehe) / 2;
-
-    // Initialisiere die Kästchen mit zentrierten Positionen
-    //links oben ist [0][0]
-    for (int i = 0; i < rasterHoehe; ++i) {
-        for (int j = 0; j < rasterBreite; ++j) {
-            // Position jedes Kästchens berechnen und den Offset hinzufügen
-            kaestchen[i][j].setzePosition(offsetX + j * kaestchenGroesse, offsetY + i * kaestchenGroesse);
-            kaestchen[i][j].setzeFarbe(Color::WHITE);
-
-            // Setze die Ränder des Spielfelds auf grau
-            if (i == 0 || j == 0 || i == rasterHoehe - 1 || j == rasterBreite - 1) {
-                kaestchen[i][j].setzeFarbe(Color::GRAY);
-            }
-        }
+void Schlange::setzeRichtung(int x, int y) {        //x,y neue richtung
+    // Verhindert das Umdrehen auf sich selbst
+    if ((richtungX != -x || richtungX == 0) && (richtungY != -y || richtungY == 0)) {
+        richtungX = x;
+        richtungY = y;
+        richtungAndernErlaubt = false;  //nachdem eine gültige eingabe getätigt wurde wird die eingabe gesperrt bis die Schlange im nächsten Feld ist
     }
-
-    // Apfel und Schlange initialisieren
-    apfel = new Apfel(this);
-    schlange = new Schlange(this);
-
-    // Apfel platzieren
-    apfelPlatzieren();
-}
-
-
-Steuerung::~Steuerung() {
-    delete apfel;
-    delete schlange;
-    delete snakeEating;
 }
 
 void Steuerung::verloren() {
-    setzteAktualisierungsZeit(10000); //10 minuten 
+    setzteAktualisierungsZeit(100000); //100 minuten 
     spielstand = 2;
     if ((schlange->gibGroesse() + 1) > highscore) {
         highscore = schlange->gibGroesse();
     }
 }
+
 
 void Steuerung::neustart() {
     // Spielfeld zurücksetzen
@@ -289,7 +306,7 @@ void Steuerung::neustart() {
 
             // Setze die Ränder des Spielfelds auf grau
             if (i == 0 || j == 0 || i == rasterHoehe - 1 || j == rasterBreite - 1) {
-                kaestchen[i][j].setzeFarbe(Color::GRAY);
+                kaestchen[i][j].setzeFarbe(todeszone);
             }
         }
     }
@@ -321,20 +338,6 @@ int Steuerung::gibApfelPosY() {
 }
 bool Steuerung::gibRichtungAndernErlaubt() {
     return schlange->gibRichtungAndernErlaubt();
-}
-void Steuerung::apfelPlatzieren() { //von Apfel die neue position des Apfels in kästchen gespeichert
-    array<int, 2> position = apfel->randomApfelPos();
-    kaestchen[position[0]][position[1]].setzeFarbe(Color::RED);
-
-
-}
-
-void Steuerung::apfelGegessen(int posX, int posY) {
-    if (kaestchen[apfel->gibPosX()][apfel->gibPosY()].gibFarbe() == Color::RED) {
-        apfel->apfelMengedec();//Apfel menge wird um eins verringert (wenn es mehrere Äpfel gibt)
-        apfelEntfernen();
-        apfelPlatzieren();
-    }
 }
 
 class Oberflaeche : public Window {
@@ -413,7 +416,7 @@ public:
     }
 
     void draw() override {
-        if (steuerung->gibSpielstand() == 0) {
+        if (steuerung->gibSpielstand() == 0) {  //start
 
         }
 
@@ -488,7 +491,7 @@ public:
 
             // Zeichne einen Kasten als Hintergrund für den Text
             Color kastenFarbe = Color::BLACK;
-            Color randFarbe = Color::GRAY;
+            Color randFarbe = Color::GRAY;     //Rand
 
 
             // Hintergrundrechteck zeichnen
