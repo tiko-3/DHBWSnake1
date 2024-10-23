@@ -126,9 +126,7 @@ Schlange::Schlange(Steuerung* steuerung) : steuerung(steuerung) {
     farbe = Color::GREEN;
 }
 
-Apfel::Apfel(Steuerung* steuerung) : steuerung(steuerung) {
-    srand(time(nullptr));
-}
+Apfel::Apfel(Steuerung* steuerung) : steuerung(steuerung) {}//bidirektionale Beziehung
 
 Steuerung::Steuerung() {
     // Berechne den Offset, um das Spielfeld zu zentrieren
@@ -171,6 +169,15 @@ Steuerung::~Steuerung() {
     delete snakeEating;
 }
 
+void Schlange::setzeRichtung(int x, int y) {        //x,y neue richtung
+    // Verhindert das Umdrehen auf sich selbst
+    if ((richtungX != -x || richtungX == 0) && (richtungY != -y || richtungY == 0)) {
+        richtungX = x;
+        richtungY = y;
+        richtungAndernErlaubt = false;  //nachdem eine gültige eingabe getätigt wurde wird die eingabe gesperrt bis die Schlange im nächsten Feld ist
+    }
+}
+
 void Schlange::bewegen() {
     int neuerKopfX = get<1>(segmente.front()) + richtungX;//holt die X position des Kopfes
     int neuerKopfY = get<2>(segmente.front()) + richtungY;//holt die Y position des Kopfes
@@ -182,8 +189,11 @@ void Schlange::bewegen() {
     }
     steuerung->kollisionMitWand(neuerKopfX, neuerKopfY);
     steuerung->kollisionMitSichSelbst(neuerKopfX, neuerKopfY);
-    segmente.insert(segmente.begin(), make_tuple(0, neuerKopfX, neuerKopfY));
 
+    //Fügt das neue Kopfsegment an den Anfang der Schlange hinzu
+    segmente.insert(segmente.begin(), make_tuple(0, neuerKopfX, neuerKopfY));   
+
+    // Dies setzt die Indexwerte (get<0>) für alle Segmente entsprechend ihrer Position in der Liste
     for (int i = 0; i < segmente.size(); i++) {
         get<0>(segmente[i]) = i;
     }
@@ -280,17 +290,8 @@ void Steuerung::kollisionMitSichSelbst(int kopfX, int kopfY) {
     }
 }
 
-void Schlange::setzeRichtung(int x, int y) {        //x,y neue richtung
-    // Verhindert das Umdrehen auf sich selbst
-    if ((richtungX != -x || richtungX == 0) && (richtungY != -y || richtungY == 0)) {
-        richtungX = x;
-        richtungY = y;
-        richtungAndernErlaubt = false;  //nachdem eine gültige eingabe getätigt wurde wird die eingabe gesperrt bis die Schlange im nächsten Feld ist
-    }
-}
-
 void Steuerung::verloren() {
-    setzteAktualisierungsZeit(100000); //100 minuten 
+    setzteAktualisierungsZeit(1000000); //1000 minuten 
     spielstand = 2;
     if ((schlange->gibGroesse() + 1) > highscore) {
         highscore = schlange->gibGroesse();
@@ -491,7 +492,7 @@ public:
 
             // Zeichne einen Kasten als Hintergrund für den Text
             Color kastenFarbe = Color::BLACK;
-            Color randFarbe = Color::GRAY;     //Rand
+            Color randFarbe = Color::GRAY;     //Rand für neustart Knopf
 
 
             // Hintergrundrechteck zeichnen
@@ -549,7 +550,7 @@ public:
             if (steuerung->gibSpielstand() != 3) {
                 steuerung->setzteSpielstand(3);
                 kleineTrinkpause->play(true);  // `true` bedeutet, dass die Datei im Loop abgespielt wird
-                kleineTrinkpause->play(false);
+                kleineTrinkpause->play(false);  //nach einmal abspielen wird Sound gestoppt
                 steuerung->setzteAktualisierungsZeit(1000000);
             }
             else {
