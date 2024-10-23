@@ -44,7 +44,7 @@ private:
     Color farbe;
 
 public:
-    Kaestchen(int x = 0, int y = 0, Color farbe = Color::WHITE)
+    Kaestchen(int x = 0, int y = 0, Color farbe = Color::WHITE)  //Hintergrund
         : posX(x), posY(y), farbe(farbe) {}
 
     int gibPosX() const { return posX; }
@@ -63,11 +63,11 @@ private:
 
 public:
     Apfel(Steuerung* steuerung);
-    std::array<int, 2> randomApfelPos();
-    int gibMenge() const { return menge; }
+    std::array<int, 2> randomApfelPos();    //X & Y
+    int gibMenge() const { return menge; }  //Vorüberlegung
     int gibPosX() const { return posX; }
     int gibPosY() const { return posY; }
-    void apfelMengedec() { menge = menge - 1; }
+    void apfelMengedec() { menge = menge - 1; } //Vorüberlegung
 };
 
 class Steuerung {
@@ -75,12 +75,12 @@ private:
     
     const int rasterBreite = 10;
     const int rasterHoehe = 10;
-    const int kaestchenGroesse = 50;
-    double standardGeschwindigkeit = 0.45;
+    const int kaestchenGroesse = 50;    //Maße des Spielfeldes
+    double standardGeschwindigkeit = 0.45; 
     double aktualisierungsZeit = 0.45;  //vorher 0.45
     int spielstand = 1;     //0=start, 1=spielen, 2=verloren, 3=pause
     int highscore = 0;
-    Color todeszone = Color::BLACK; 
+    Color todeszone = Color::BLACK; //Spielfeldrand
 
     Kaestchen kaestchen[10][10];
     Apfel* apfel;
@@ -102,7 +102,7 @@ public:
     void kollisionMitSichSelbst(int kopfX, int kopfY);
     void verloren();
     void neustart();
-    int gibSpielstand() { return spielstand; }
+    int gibSpielstand() { return spielstand; }  //Rückgabefunktionen
     void setzteSpielstand(int spielstand) { this->spielstand = spielstand; }
     double gibaktualisierungsZeit() { return aktualisierungsZeit; }
     int gibGroessseSchlange() { return schlange->gibGroesse(); }
@@ -202,10 +202,10 @@ void Schlange::bewegen() {
 
 //Timo
 bool Schlange::isstApfel(int apfelX, int apfelY) {
-    int kopfX = get<1>(segmente.front());
-    int kopfY = get<2>(segmente.front());
+    int kopfX = get<1>(segmente.front());   //1. Segment, X-Position
+    int kopfY = get<2>(segmente.front());   //2. Segment, Y-Position
 
-    if (kopfX == apfelX && kopfY == apfelY) {
+    if (kopfX == apfelX && kopfY == apfelY) { 
         return true;
     }
     else {
@@ -213,16 +213,16 @@ bool Schlange::isstApfel(int apfelX, int apfelY) {
     }
 }
 
-void Steuerung::apfelGegessen(int posX, int posY) {
-        apfel->apfelMengedec();//Apfel menge wird um eins verringert (wenn es mehrere Äpfel gibt)
+void Steuerung::apfelGegessen(int posX, int posY) { 
+        apfel->apfelMengedec();//Apfel menge wird um eins verringert (wenn es mehrere Äpfel gibt) (Vorüberlegung)
         apfelEntfernen();
         apfelPlatzieren();
 }
 
 void Steuerung::apfelEntfernen() {
-    kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Color::WHITE);
+    kaestchen[apfel->gibPosX()][apfel->gibPosY()].setzeFarbe(Color::WHITE); //Abrufen der Position des Apfels, dann entfernen
 
-    snakeEating = new Gosu::Sample("snakeEating.wav");
+    snakeEating = new Gosu::Sample("snakeEating.wav"); //Essenssound
     snakeEating->play();
 }
 
@@ -231,16 +231,16 @@ array<int, 2> Apfel::randomApfelPos() {
     bool belegt = true;
     int randX = 0;  // Apfel startet auf der gleichen x-Koordinate wie die Schlange
     int randY = 0;
-    std::array<int, 2> rueckgabe = { 0, 0 };
+    std::array<int, 2> rueckgabe = { 0, 0 }; //Initialisieren
 
     while (belegt) {
         randX = (rand() % max) + 1;  // neue zufällige Position
-        randY = (rand() % max) + 1;
+        randY = (rand() % max) + 1;  //+1 damit nicht in Todeszone
         belegt = false;  // initialisiere als nicht belegt
 
-        const vector<tuple<int, int, int>>& segmente = steuerung->gibSchlange()->gibSegmente();
+        const vector<tuple<int, int, int>>& segmente = steuerung->gibSchlange()->gibSegmente(); //Segmente der Schlange
 
-        for (const auto& segment : segmente) {
+        for (const auto& segment : segmente) { //Feldüberprüfung
             if (get<1>(segment) == randX && get<2>(segment) == randY) {
                 belegt = true;  // Position ist belegt
                 break;  // keine weitere Prüfung notwendig, Position ist besetzt
@@ -259,8 +259,8 @@ array<int, 2> Apfel::randomApfelPos() {
 }
 
 void Steuerung::apfelPlatzieren() { //von Apfel die neue position des Apfels in kästchen gespeichert
-    array<int, 2> position = apfel->randomApfelPos();
-    kaestchen[position[0]][position[1]].setzeFarbe(Color::RED);
+    array<int, 2> position = apfel->randomApfelPos(); //X&Y Position
+    kaestchen[position[0]][position[1]].setzeFarbe(Color::RED); //auf Position, die von randomApfelPos übergeben wird, wird der neue Apfel gesetzt
 }
 
 
